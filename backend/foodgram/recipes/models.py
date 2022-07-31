@@ -34,6 +34,26 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
+        max_length=200,
+        verbose_name='Название',
+    )
+    measurement_unit = models.CharField(
+        max_length=200,
+        verbose_name='Единицы измерения',
+    )
+
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class IngredientInRecipe(models.Model):
+    name = models.CharField(
+        max_length=200,
         verbose_name='Название',
     )
     measurement_unit = models.CharField(
@@ -45,8 +65,8 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Ингредиент'
-        verbose_name_plural = 'Ингредиенты'
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
         ordering = ('name',)
 
     def __str__(self):
@@ -71,18 +91,21 @@ class Recipe(models.Model):
         verbose_name='Описание',
     )
     ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='recipes',
+        through='IngredientInRecipe',
         verbose_name='Список ингредиентов',
     )
     tag = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
         verbose_name='Список тегов',
-        required=True,
-
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления (в минутах)',
-        validators=(
-            MinValueValidator(1, 'Время приготовления от 1 ')
-        ),
+        # validators=(
+        #     MinValueValidator(1, 'Время приготовления от 1 ')
+        # ),
     )
 
     class Meta:
