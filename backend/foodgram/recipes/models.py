@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 
 
 User = get_user_model()
@@ -52,13 +53,11 @@ class Ingredient(models.Model):
 
 
 class IngredientInRecipe(models.Model):
-    name = models.CharField(
-        max_length=200,
-        verbose_name='Название',
-    )
-    measurement_unit = models.CharField(
-        max_length=200,
-        verbose_name='Единицы измерения',
+    ingredient = models.ForeignKey(
+        Ingredient,
+        related_name='ingredient_in_recipe',
+        verbose_name = 'Ингредиент',        
+        on_delete=models.CASCADE
     )
     amount = models.PositiveIntegerField(
         verbose_name='Количество',
@@ -67,10 +66,18 @@ class IngredientInRecipe(models.Model):
     class Meta:
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецепте'
-        ordering = ('name',)
+        constraints = (
+            UniqueConstraint(
+                fields=('ingredient', 'amount',),
+                name='unique_amount_of_ingredient',
+            ),
+        )
 
     def __str__(self):
-        return f'{self.name}'
+        return (
+            f'{self.ingredient.name}: {self.amount}'
+            f'{self.ingredient.measurement_unit}'
+        )
 
 
 class Recipe(models.Model):
@@ -87,7 +94,7 @@ class Recipe(models.Model):
     image = models.ImageField(
         verbose_name='Ссылка на картинку на сайте'
     )
-    text = models.CharField(
+    text = models.TextField(
         verbose_name='Описание',
     )
     ingredients = models.ManyToManyField(
@@ -109,9 +116,12 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ('name', )
+        ordering = ('-pk', )
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        return self.name
+        return f'{self.name} [{self.author}]
+    
+    def get_absolute_url(self)
+        return reverse('recipe', args=[self.pk])
