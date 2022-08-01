@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+# from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -56,7 +56,7 @@ class IngredientInRecipe(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         related_name='ingredient_in_recipe',
-        verbose_name = 'Ингредиент',        
+        verbose_name='Ингредиент',
         on_delete=models.CASCADE
     )
     amount = models.PositiveIntegerField(
@@ -67,7 +67,7 @@ class IngredientInRecipe(models.Model):
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецепте'
         constraints = (
-            UniqueConstraint(
+            models.UniqueConstraint(
                 fields=('ingredient', 'amount',),
                 name='unique_amount_of_ingredient',
             ),
@@ -121,7 +121,7 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self):
-        return f'{self.name} [{self.author}]
-    
-    def get_absolute_url(self)
+        return f'{self.name} ({self.author})'
+
+    def get_absolute_url(self):
         return reverse('recipe', args=[self.pk])
