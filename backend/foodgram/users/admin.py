@@ -12,7 +12,6 @@ class UserAdmin(admin.ModelAdmin):
         'role',
         'is_staff',
         'confirmation_code',
-        'is_admin',
     )
     list_display_links = ('username',)
     list_filter = ('role',)
