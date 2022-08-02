@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# from .validators import username_validator
+from .validators import username_validator
 
 USER = 'user'
 ADMIN = 'admin'
@@ -19,10 +19,10 @@ class User(AbstractUser):
         help_text=(
             'Обязательное поле. 150 символов или меньше.'
             'Только буквы, цифры и @/./+/-/_'),
-        # validators=(username_validator,),
-        #error_messages={
-        #     'unique': 'Пользователь с таким именем уже существует.',
-        #},
+        validators=(username_validator,),
+        error_messages={
+             'unique': 'Пользователь с таким именем уже существует.',
+        },
     )
     email = models.EmailField(
         'Адрес электронной почты',
@@ -68,6 +68,6 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-    # @property
-    # def is_admin(self):
-    #     return self.role == ADMIN or self.is_staff
+    @property
+    def is_admin(self):
+        return self.role == ADMIN or self.is_staff

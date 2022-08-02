@@ -130,39 +130,38 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.AllowAny',
-#     ],
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework_simplejwt.authentication.JWTAuthentication',
-#     ],
-#     'DEFAULT_PAGINATION_CLASS':
-#         'rest_framework.pagination.LimitOffsetPagination',
-#     'PAGE_SIZE': 5,
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 5,
+}
 
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-#     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-#     'USER_ID_FIELD': 'id',
-#     'USER_ID_CLAIM': 'id',
-# }
+SIMPLE_JWT = {
+     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+     'AUTH_HEADER_TYPES': ('Bearer',),
+     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+     'USER_ID_FIELD': 'id',
+     'USER_ID_CLAIM': 'id',
+}
 
 # email settings
 
-# PRODUCTION_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# TEST_EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+PRODUCTION_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+TEST_EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
-# EMAIL_BACKEND = TEST_EMAIL_BACKEND if DEBUG else TEST_EMAIL_BACKEND
+EMAIL_BACKEND = TEST_EMAIL_BACKEND if DEBUG else TEST_EMAIL_BACKEND
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
-# EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
-
-# EMAIL_HOST = 'smtp.yandex.ru'
-# EMAIL_PORT = 465
-# EMAIL_USE_TLS = False
-# EMAIL_USE_SSL = True
-# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default='example@example.ru')
-# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default='0123456789')
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default='example@example.ru')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default='0123456789')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
