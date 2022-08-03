@@ -20,44 +20,44 @@ from recipes.models import Ingredient, Tag, Recipe
 from users.models import User
 
 
-@api_view(['POST', ])
-@permission_classes([permissions.AllowAny])
-def signup_user(request):
-    """
-    Creates a user and sends a confirmation code to the email.
-    If the user is already in the database
-    sends a confirmation code to the user's email again.
-    """
-    serializer = SignUpSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    try:
-        user, _ = User.objects.get_or_create(**serializer.validated_data)
-    except IntegrityError:
-        return Response(
-            {'Введена не правильная пара имени пользователя и e-mail.'},
-            status=status.HTTP_400_BAD_REQUEST)
-    confirmation_code = get_random_string(length=20)
-    user.confirmation_code = confirmation_code
-    user.save()
-    subject = 'Ваш код подтверждения регистрации на YaMDb!'
-    message = f'Код подтверждения - {user.confirmation_code}'
-    user.email_user(subject, message, fail_silently=False)
-    return Response(serializer.validated_data, status=status.HTTP_200_OK)
+# @api_view(['POST', ])
+# @permission_classes([permissions.AllowAny])
+# def signup_user(request):
+#    """
+#    Creates a user and sends a confirmation code to the email.
+#    If the user is already in the database
+#    sends a confirmation code to the user's email again.
+#    """
+#    serializer = SignUpSerializer(data=request.data)
+#    serializer.is_valid(raise_exception=True)
+#    try:
+#        user, _ = User.objects.get_or_create(**serializer.validated_data)
+#    except IntegrityError:
+#        return Response(
+#            {'Введена не правильная пара имени пользователя и e-mail.'},
+#            status=status.HTTP_400_BAD_REQUEST)
+#    confirmation_code = get_random_string(length=20)
+#    user.confirmation_code = confirmation_code
+#    user.save()
+#    subject = 'Ваш код подтверждения регистрации на YaMDb!'
+#    message = f'Код подтверждения - {user.confirmation_code}'
+#    user.email_user(subject, message, fail_silently=False)
+#    return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 
-@api_view(['POST', ])
-@permission_classes([permissions.AllowAny])
-def user_token(request):
-    serializer = TokenSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username, confirmation_code = serializer.validated_data.values()
-    user = get_object_or_404(User, username=username)
-    if confirmation_code != user.confirmation_code:
-        message = 'Не верный код'
-        raise serializers.ValidationError(message)
-    refresh = RefreshToken.for_user(user)
-    token = {'token': str(refresh.access_token)}
-    return Response(token, status=status.HTTP_201_CREATED)
+# @api_view(['POST', ])
+# @permission_classes([permissions.AllowAny])
+# def user_token(request):
+#    serializer = TokenSerializer(data=request.data)
+#    serializer.is_valid(raise_exception=True)
+#    username, confirmation_code = serializer.validated_data.values()
+#    user = get_object_or_404(User, username=username)
+#    if confirmation_code != user.confirmation_code:
+#        message = 'Не верный код'
+#        raise serializers.ValidationError(message)
+#    refresh = RefreshToken.for_user(user)
+#    token = {'token': str(refresh.access_token)}
+#    return Response(token, status=status.HTTP_201_CREATED)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
