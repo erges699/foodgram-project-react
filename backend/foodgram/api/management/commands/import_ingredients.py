@@ -1,5 +1,6 @@
 from csv import DictReader
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from recipes.models import Ingredient
@@ -20,9 +21,17 @@ class Command(BaseCommand):
             print(ALREDY_LOADED_ERROR_MESSAGE)
             return
         print('Загружаю данные')
-        for row in DictReader(open('../data/ingredients.csv')):
+        for row in DictReader(
+                open(
+                f'{settings.BASE_DIR}/data/ingredients.csv',
+                'r',
+                encoding="utf8"            
+                ),
+                fieldnames=("name", "unit"),
+                delimiter=','
+            ):
             ingredient = Ingredient(
-                name=row[1],
-                measurement_unit=row[2]
+                name=row["name"],
+                measurement_unit=row["unit"]
             )
             ingredient.save()
