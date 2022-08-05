@@ -23,7 +23,7 @@ class Command(BaseCommand):
         print('Загружаю данные')
         for row in DictReader(
                 open(
-                f'{settings.BASE_DIR}/data/ingredients.csv',
+                './data/ingredients.csv',
                 'r',
                 encoding="utf8"            
                 ),

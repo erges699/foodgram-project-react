@@ -6,7 +6,7 @@ from recipes.models import Ingredient, Tag, Recipe
 class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('name', 'measurement_unit', 'amount')
+        fields = ('name', 'measurement_unit')
         model = Ingredient
 
 
