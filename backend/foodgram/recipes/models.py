@@ -18,7 +18,7 @@ class Tag(models.Model):
         verbose_name='Цвет в HEX',
         unique=True,
     )
-    slug = models.CharField(
+    slug = models.SlugField(
         max_length=200,
         verbose_name='Уникальный слаг',
         unique=True,
@@ -31,6 +31,9 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('tag', args=[self.slug])
 
 
 class Ingredient(models.Model):
@@ -50,7 +53,6 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-
 
 
 class Recipe(models.Model):
