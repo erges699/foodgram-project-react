@@ -1,10 +1,18 @@
 from django.core.validators import MinValueValidator
-from tabnanny import verbose
-from tkinter import CASCADE
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 
+CHOICES = (
+    ('#FFFFFF', 'Белый'),
+    ('#000000', 'Чёрный'),
+    ('#0000FF', 'Синий'),
+    ('#00FF00', 'Лайм'),
+    ('#FF0000', 'Красный'),
+    ('#FFFF00', 'Жёлтый'),
+    ('#FFC0CB', 'Розовый'),
+    ('#D2691E', 'Шоколадный'),
+)
 
 User = get_user_model()
 
@@ -13,12 +21,12 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=200,
         verbose_name='Название',
-        unique=True,
     )
     color = models.CharField(
         max_length=7,
+        default='#FFFFFF',
         verbose_name='Цвет в HEX',
-        unique=True,
+        choices=CHOICES,
     )
     slug = models.SlugField(
         max_length=200,
@@ -69,10 +77,11 @@ class Recipe(models.Model):
         max_length=200
     )
     image = models.ImageField(
-        verbose_name='Ссылка на картинку на сайте'
+        verbose_name='Ссылка на картинку на сайте',
     )
     text = models.TextField(
         verbose_name='Описание',
+        default='',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -106,15 +115,19 @@ class IngredientInRecipe(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='Ингредиент',
+        related_name='ingredient_in_recipe',
         on_delete=models.CASCADE
     )
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
+        related_name='ingredient_in_recipe',
         on_delete=models.CASCADE
-    )    
+    )
     amount = models.PositiveIntegerField(
         verbose_name='Количество',
+        validators=[MinValueValidator(1)],
+        default=1
     )
 
     class Meta:
@@ -129,21 +142,73 @@ class IngredientInRecipe(models.Model):
 
     def __str__(self):
         return (
-            f'{self.ingredient.name}: {self.amount}'
-            f'{self.ingredient.measurement_unit}'
+            f'{self.ingredient}: {self.amount}'
         )
 
 
-class ShoppingList(models.Model):
-    user = models.OneToOneField(
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shopping_list',
-        verbose_name='User',
+        related_name='to_shopping_cart',
+        verbose_name='Покупатель',
     )
     recipes = models.ManyToManyField(
         Recipe,
-        related_name='in_shopping_list',
-        verbose_name='Рецепты',
+        related_name='in_shopping_cart',
+        verbose_name='Покупки',
     )
 
+    class Meta:
+        ordering = ['user', 'recipe']
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+
+    def __str__(self):
+        return f'{self.user}'
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower')
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following')
+
+    class Meta:
+        ordering = ['user', 'author']
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_following')
+        ]
+
+    def __str__(self):
+        return f'{self.user}, {self.author}'
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite')
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorite')
+
+    class Meta:
+        ordering = ['user', 'recipe']
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique_favorite')
+        ]
+
+    def __str__(self):
+        return f'{self.user} ({self.recipe})'

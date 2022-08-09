@@ -1,7 +1,8 @@
-from dataclasses import fields
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Tag, Recipe, ShoppingList, IngredientInRecipe
+from recipes.models import (
+    Ingredient, Tag, Recipe, ShoppingCart, IngredientInRecipe
+) 
 from users.serializers import UserSerializer
 
 
@@ -36,7 +37,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            'id', 
+            'id',
             'name',
             'author',
             'image',
@@ -45,6 +46,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tag',
             'cooking_time'
         )
+
     def get_user(self):
         return self.context['request'].user
 
