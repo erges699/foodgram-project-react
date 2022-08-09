@@ -1,4 +1,6 @@
-# from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator
+from tabnanny import verbose
+from tkinter import CASCADE
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
@@ -78,16 +80,14 @@ class Recipe(models.Model):
         through='IngredientInRecipe',
         verbose_name='Список ингредиентов',
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
         verbose_name='Список тегов',
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления (в минутах)',
-        # validators=(
-        #     MinValueValidator(1, 'Время приготовления от 1 ')
-        # ),
+        validators=[MinValueValidator(1)],
     )
 
     class Meta:
@@ -132,3 +132,18 @@ class IngredientInRecipe(models.Model):
             f'{self.ingredient.name}: {self.amount}'
             f'{self.ingredient.measurement_unit}'
         )
+
+
+class ShoppingList(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_list',
+        verbose_name='User',
+    )
+    recipes = models.ManyToManyField(
+        Recipe,
+        related_name='in_shopping_list',
+        verbose_name='Рецепты',
+    )
+
