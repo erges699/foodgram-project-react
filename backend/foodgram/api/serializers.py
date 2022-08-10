@@ -69,7 +69,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UserSerializer(read_only=True)
     # image = Base64ImageField()
-    ingredients = IngredientInRecipeSerializer(source="recipe_ingredients", many=True)
+    ingredients = IngredientInRecipeSerializer(
+        source="recipe_ingredients",
+        many=True
+    )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_list = serializers.SerializerMethodField()
 
@@ -89,34 +92,30 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_user(self):
         return self.context['request'].user
 
-    def get_is_favorited(self,obj):
-        
+    def get_is_favorited(self, obj):
         user = self.get.user()
         return (
             user.is_authenticated and
             user.favorites.filter(recipe=obj).exists
         )
-    def get_is_favorited(self, obj):
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        user = self.get.user()
         request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Basket.objects.filter(user=request.user, recipe=obj).exists()
+        return (
+            user.is_authenticated and
+            ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
+        )
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
             raise serializers.ValidationError(
-                'В рецепте не заполнены ингредиенты!')
+                'В рецепте отсутствуют ингредиенты!')
         return ingredients
 
     def validate_tags(self, tags):
         if not tags:
-            raise serializers.ValidationError('В рецепте не заполнены теги!')
+            raise serializers.ValidationError('В рецепте отсутствуют теги!')
         return tags
 
     def validate_image(self, image):
