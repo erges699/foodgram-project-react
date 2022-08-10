@@ -8,12 +8,14 @@ from rest_framework import (
 )
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
 # from rest_framework_simplejwt.tokens import RefreshToken
 
 from .filters import IngredientFilter, RecipeFilter
 # from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
 from .serializers import (
-    IngredientSerializer, TagSerializer, RecipeSerializer,
+    IngredientSerializer, TagSerializer, RecipeSerializer, 
+    RecipeFollowSerializer, ShoppingCartSerializer,
     # SignUpSerializer, TokenSerializer, UserSerializer,
 )
 from recipes.models import Ingredient, Tag, Recipe
@@ -92,12 +94,40 @@ class IngredientViewSet(viewsets.ModelViewSet):
             return Ingredient.objects.filter(name__istartswith=name)
         return Ingredient.objects.all()
 
+
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     # permission_classes = (permissions.AllowAny,)
     pagination_class = None
 
+
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+
+
+class ShoppingCartView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    http_method_names = ['get', 'delete']
+
+    def get(self, request, recipe_id):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        serializer = ShoppingCartSerializer(
+            data={'user': user.id, 'recipe': recipe.id},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(recipe=recipe, user=request.user)
+        serializer = RecipeFollowSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, recipe_id):
+        user = request.user
+        basket = get_object_or_404(ShoppingCartSerializer, user=user, recipe__id=recipe_id)
+        basket.delete()
+        return Response(
+            f'Рецепт {basket.recipe} удален из корзины у пользователя {user}, '
+            f'status=status.HTTP_204_NO_CONTENT'
+        )
