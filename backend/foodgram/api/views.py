@@ -10,7 +10,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 # from rest_framework_simplejwt.tokens import RefreshToken
 
-# from .filters import TitleFilter
+from .filters import IngredientFilter, RecipeFilter
 # from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
@@ -81,14 +81,22 @@ from recipes.models import Ingredient, Tag, Recipe
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
-    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    permission_classes = (permissions.AllowAny, )
+    pagination_class = None
+    filterset_class = IngredientFilter
 
+    def get_queryset(self):
+        name = self.request.GET.get('name')
+        if name:
+            return Ingredient.objects.filter(name__istartswith=name)
+        return Ingredient.objects.all()
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-
+    # permission_classes = (permissions.AllowAny,)
+    pagination_class = None
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
