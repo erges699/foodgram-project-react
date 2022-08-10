@@ -84,7 +84,7 @@ from recipes.models import Ingredient, Tag, Recipe
 
 class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
-    permission_classes = (permissions.AllowAny, )
+    # permission_classes = (permissions.AllowAny, )
     pagination_class = None
     filterset_class = IngredientFilter
 
@@ -103,8 +103,19 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    # queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filterset_class = RecipeFilter
+
+    def get_queryset(self):
+        is_favorited = self.request.GET.get("is_favorited")
+        is_in_shopping_cart = self.request.GET.get("is_in_shopping_cart")
+        if is_favorited:
+            return Recipe.objects.filter(favouriting__user=self.request.user)
+        if is_in_shopping_cart:
+            print(Recipe.objects.filter(buying__user=self.request.user))
+            return Recipe.objects.filter(buying__user=self.request.user)
+        return Recipe.objects.all().order_by('-id')
 
 
 class ShoppingCartView(APIView):

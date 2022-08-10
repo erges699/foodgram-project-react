@@ -160,7 +160,7 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        ordering = ['user', 'recipe']
+        ordering = ('user', )
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
 
@@ -179,7 +179,7 @@ class Follow(models.Model):
         related_name='following')
 
     class Meta:
-        ordering = ['user', 'author']
+        ordering = ('user', 'author',)
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = [
@@ -202,7 +202,7 @@ class Favorite(models.Model):
         related_name='favorite')
 
     class Meta:
-        ordering = ['user', 'recipe']
+        ordering = ('user', 'recipe',)
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
         constraints = [
