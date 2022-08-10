@@ -33,6 +33,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     #        return Ingredient.objects.filter(name__istartswith=name)
     #    return Ingredient.objects.all()
 
+
 '''
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
