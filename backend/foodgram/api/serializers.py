@@ -5,23 +5,29 @@ from rest_framework import serializers
 from recipes.models import (
     Ingredient, Tag, Recipe, ShoppingCart, IngredientInRecipe, Favorite
 )
-from users.serializers import UserSerializer
 
 User = get_user_model()
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('id', 'username', 'email', 'first_name', 'last_name',)
+        model = User
 
 
 class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = ['id', 'name', 'measurement_unit']
+        fields = ('id', 'name', 'measurement_unit',)
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientInRecipe
-        fields = ("id", "ingredient", "recipe", "amount")
+        fields = ('id', 'ingredient', 'recipe', 'amount',)
 
 
 class TagSerializer(serializers.ModelSerializer):

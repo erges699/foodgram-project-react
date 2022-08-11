@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 # from rest_framework_simplejwt.tokens import RefreshToken
 
-from .filters import IngredientFilter, RecipeFilter
+from .filters import RecipeFilter
 # from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer, 
@@ -24,13 +24,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    # filterset_class = IngredientFilter
-
-    # def get_queryset(self):
-    #    name = self.request.GET.get('name')
-    #    if name:
-    #        return Ingredient.objects.filter(name__istartswith=name)
-    #    return Ingredient.objects.all()
 
 
 '''
