@@ -24,7 +24,8 @@ class UsersViewSet(UserViewSet):
     def me(self, request, *args, **kwargs):
         return super(UsersViewSet, self).me(request, *args, **kwargs)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)
         page = self.paginate_queryset(queryset)
@@ -60,3 +61,12 @@ class UsersViewSet(UserViewSet):
             {'Попытка удалить несуществующую подписку!'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class FollowViewSet(ListAPIView):
+    serializer_class = ShowFollowsSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = SmallPageNumberPagination
+
+    def get_queryset(self):
+        return User.objects.filter(following__user=self.request.user)
