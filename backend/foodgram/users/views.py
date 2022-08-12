@@ -22,7 +22,7 @@ class UsersViewSet(UserViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def me(self, request, *args, **kwargs):
-        return super(CustomUserViewSet, self).me(request, *args, **kwargs)
+        return super(UsersViewSet, self).me(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def subscriptions(self, request):

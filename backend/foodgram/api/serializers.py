@@ -1,19 +1,44 @@
 import base64
 from django.contrib.auth import get_user_model
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
 from recipes.models import (
-    Ingredient, Tag, Recipe, ShoppingCart, IngredientInRecipe, Favorite
+    Follow, Ingredient, Tag, Recipe, ShoppingCart, IngredientInRecipe, Favorite
 )
 
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(UserCreateSerializer):
 
     class Meta:
-        fields = ('id', 'username', 'email', 'first_name', 'last_name',)
         model = User
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'password',
+        )
+
+
+class UserGetSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed',
+        )
+
+    def get_user(self):
+        return self.context['request'].user
+
+    def get_is_subscribed(self, author):
+        user = self.get_user()
+        return (
+            user.is_authenticated and
+            Follow.objects.filter(user=user, author=author.id).exists()
+        )
 
 
 class IngredientSerializer(serializers.ModelSerializer):
