@@ -1,5 +1,6 @@
 import base64
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
@@ -39,6 +40,65 @@ class UserGetSerializer(UserSerializer):
             user.is_authenticated and
             Follow.objects.filter(user=user, author=author.id).exists()
         )
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',)
+
+
+class CreateFollowSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source='user.id')
+    author = serializers.IntegerField(source='author.id')
+
+    class Meta:
+        model = Follow
+        fields = ['user', 'author']
+
+    def validate(self, data):
+        user = data['user']['id']
+        author = data['author']['id']
+        follow_exist = Follow.objects.filter(
+            user__id=user, author__id=author
+        ).exists()
+        if user == author:
+            raise serializers.ValidationError(
+                {"errors": 'Вы не можете подписаться на самого себя'}
+            )
+        elif follow_exist:
+            raise serializers.ValidationError({"errors": 'Вы уже подписаны'})
+        return data
+
+    def create(self, validated_data):
+        author = validated_data.get('author')
+        author = get_object_or_404(User, pk=author.get('id'))
+        user = User.objects.get(id=validated_data["user"]["id"])
+        Follow.objects.create(user=user, author=author)
+        return validated_data
+
+
+class ShowFollowsSerializer(UserSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count')
+
+    def get_recipes_count(self, author):
+        return author.recipes.count()
+
+    def get_recipes(self, author):
+        recipes = author.recipes.all()
+        recipes_limit = self.context.get('request').query_params.get(
+            'recipes_limit'
+        )
+        if recipes_limit:
+            recipes = recipes[:int(recipes_limit)]
+        return RecipeMinifiedSerializer(recipes, many=True).data
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -94,6 +154,15 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class RecipeMinifiedSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time', 'author')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -206,3 +275,23 @@ class FavoriteSerializer(serializers.ModelSerializer):
         print(user, recipe)
         Favorite.objects.get_or_create(user=user, recipe=recipe)
         return validated_data
+
+
+class FollowerSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = RecipeSerializer(many=True)
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'email', 'username', 'first_name',
+            'last_name', 'is_subscribed', 'recipes', 'recipes_count'
+        )
+
+    @staticmethod
+    def get_is_subscribed(obj):
+        return True
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
