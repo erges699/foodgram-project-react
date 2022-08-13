@@ -1,6 +1,6 @@
 # import base64
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
@@ -49,34 +49,34 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('email', 'id', 'username', 'first_name', 'last_name',)
 
 
-class CreateFollowSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(source='user.id')
-    author = serializers.IntegerField(source='author.id')
+class FollowSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all(),
+        default=serializers.CurrentUserDefault()
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all()
+    )
 
     class Meta:
         model = Follow
-        fields = ['user', 'author']
+        fields = ('user', 'author',)
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=['user', 'author'],
+                message='Такая подписка уже существует!'
+            )
+        ]
 
     def validate(self, data):
-        user = data['user']['id']
-        author = data['author']['id']
-        follow_exist = Follow.objects.filter(
-            user__id=user, author__id=author
-        ).exists()
-        if user == author:
+        if data['user'] == data['author']:
             raise serializers.ValidationError(
-                {"errors": 'Вы не можете подписаться на самого себя'}
+                'Нельзя подписаться на себя!'
             )
-        elif follow_exist:
-            raise serializers.ValidationError({"errors": 'Вы уже подписаны'})
         return data
-
-    def create(self, validated_data):
-        author = validated_data.get('author')
-        author = get_object_or_404(User, pk=author.get('id'))
-        user = User.objects.get(id=validated_data["user"]["id"])
-        Follow.objects.create(user=user, author=author)
-        return validated_data
 
 
 class ShowFollowsSerializer(UserSerializer):

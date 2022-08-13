@@ -1,7 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import (
-    filters, mixins, pagination, permissions, serializers, status, viewsets,
-)
+from rest_framework import (filters, permissions, status, viewsets)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 # from rest_framework_simplejwt.tokens import RefreshToken
@@ -24,34 +22,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
-
-'''
-    def get_title(self):
-        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-
-    def get_queryset(self):
-        return self.get_title().reviews.all()
-
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-            title=self.get_title()
-        )
-
-    def get_queryset(self):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        return review.comments.all()
-
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-            review=get_object_or_404(
-                Review, pk=self.kwargs.get('review_id'),
-                title_id=self.kwargs.get('title_id')
-            )
-        )
-'''
 
 
 class TagViewSet(viewsets.ModelViewSet):
