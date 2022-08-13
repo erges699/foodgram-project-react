@@ -1,4 +1,3 @@
-# import base64
 from django.contrib.auth import get_user_model
 # from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -9,6 +8,43 @@ from recipes.models import (
 )
 
 User = get_user_model()
+
+
+class Base64ImageField(serializers.ImageField):
+    """
+    A Django REST framework field for handling image-uploads through raw post data.
+    It uses base64 for encoding and decoding the contents of the file.
+
+    Heavily based on
+    https://github.com/tomchristie/django-rest-framework/pull/1268
+
+    Updated for Django REST framework 3.
+    """
+
+    def to_internal_value(self, data):
+        from django.core.files.base import ContentFile
+        import base64
+        import six
+        import uuid
+
+        if isinstance(data, six.string_types):
+            if 'data:' in data and ';base64,' in data:
+                header, data = data.split(';base64,')
+            try:
+                decoded_file = base64.b64decode(data)
+            except TypeError:
+                self.fail('invalid_image')
+            file_name = str(uuid.uuid4())[:12]
+            file_extension = self.get_file_extension(file_name, decoded_file)
+            complete_file_name = "%s.%s" % (file_name, file_extension, )
+            data = ContentFile(decoded_file, name=complete_file_name)
+        return super(Base64ImageField, self).to_internal_value(data)
+
+    def get_file_extension(self, file_name, decoded_file):
+        import imghdr
+        extension = imghdr.what(file_name, decoded_file)
+        extension = "jpg" if extension == "jpeg" else extension
+        return extension
 
 
 class UserCreateSerializer(UserCreateSerializer):
@@ -168,13 +204,13 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UserSerializer(read_only=True)
-    # image = Base64ImageField()
+    image = Base64ImageField(max_length=None, use_url=True,)
     ingredients = IngredientInRecipeSerializer(
-        source="recipe_ingredients",
+        source="ingredient_in_recipe",
         many=True
     )
     is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_list = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -188,64 +224,26 @@ class RecipeSerializer(serializers.ModelSerializer):
             'ingredients',
             'cooking_time',
             'is_favorited',
-            'is_in_shopping_list',
+            'is_in_shopping_cart',
         )
 
     def get_user(self):
         return self.context['request'].user
 
     def get_is_favorited(self, obj):
-        user = self.get.user()
+        user = self.get_user()
         return (
             user.is_authenticated and
-            user.favorites.filter(recipe=obj).exists
+            user.favorited.filter(recipe=obj).exists
         )
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.get.user()
+        user = self.get_user()
         request = self.context.get('request')
         return (
             user.is_authenticated and
             ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
         )
-
-    def validate_ingredients(self, ingredients):
-        if not ingredients:
-            raise serializers.ValidationError(
-                'В рецепте отсутствуют ингредиенты!')
-        return ingredients
-
-    def validate_tags(self, tags):
-        if not tags:
-            raise serializers.ValidationError('В рецепте отсутствуют теги!')
-        return tags
-
-    def validate_image(self, image):
-        if not image:
-            raise serializers.ValidationError('Добавьте картинку рецепта!')
-        return image
-
-    def validate_name(self, name):
-        if not name:
-            raise serializers.ValidationError('Не заполнено название рецепта!')
-        if self.context.get('request').method == 'POST':
-            current_user = self.context.get('request').user
-            if Recipe.objects.filter(author=current_user, name=name).exists():
-                raise serializers.ValidationError(
-                    'Рецепт с таким названием у вас уже есть!'
-                )
-        return name
-
-    def validate_text(self, text):
-        if not text:
-            raise serializers.ValidationError('Не заполнено описание рецепта!')
-        return text
-
-    def validate_cooking_time(self, cooking_time):
-        if not cooking_time:
-            raise serializers.ValidationError(
-                'Не заполнено время приготовления рецепта!')
-        return cooking_time
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

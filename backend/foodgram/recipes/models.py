@@ -203,7 +203,7 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite')
+        related_name='favorited')
 
     class Meta:
         ordering = ('user', 'recipe',)

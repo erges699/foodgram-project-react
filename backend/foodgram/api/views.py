@@ -39,7 +39,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         is_favorited = self.request.GET.get("is_favorited")
         is_in_shopping_cart = self.request.GET.get("is_in_shopping_cart")
         if is_favorited:
-            return Recipe.objects.filter(favourite__user=self.request.user)
+            return Recipe.objects.filter(favourited__user=self.request.user)
         if is_in_shopping_cart:
             return Recipe.objects.filter(buying__user=self.request.user)
         return Recipe.objects.all().order_by('-id')

@@ -19,7 +19,7 @@ User = get_user_model()
 
 def shopping_cart_file(user):
     ingredients = IngredientInRecipe.objects.filter(
-        recipe__buying__user=user).values(
+        recipe__in_shopping_cart__user=user).values(
         'ingredient__name',
         'ingredient__unit').annotate(total=Sum('amount'))
 
