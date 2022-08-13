@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from .filters import RecipeFilter
 # from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
 from .serializers import (
-    IngredientSerializer, TagSerializer, RecipeSerializer, 
+    IngredientSerializer, TagSerializer, RecipeSerializer,
     RecipeFollowSerializer, ShoppingCartSerializer,
     # SignUpSerializer, TokenSerializer, UserSerializer,
 )
@@ -76,6 +76,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class ShoppingCartView(viewsets.ModelViewSet):
+    # permission_classes = (permissions.AllowAny, )
 
     @action(methods=['get', 'delete'], detail=False,
             permission_classes=(permissions.IsAuthenticated,))

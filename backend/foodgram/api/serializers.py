@@ -1,4 +1,4 @@
-import base64
+# import base64
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -182,11 +182,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'author',
+            'tags',
             'image',
             'text',
             'ingredients',
-            'tag',
-            'cooking_time'
+            'cooking_time',
+            'is_favorited',
+            'is_in_shopping_list',
         )
 
     def get_user(self):
