@@ -137,20 +137,6 @@ class ShowFollowsSerializer(UserSerializer):
         return RecipeMinifiedSerializer(recipes, many=True).data
 
 
-class IngredientSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Ingredient
-        fields = ('id', 'name', 'measurement_unit',)
-
-
-class IngredientInRecipeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = IngredientInRecipe
-        fields = ('id', 'ingredient', 'recipe', 'amount',)
-
-
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -201,6 +187,20 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time', 'author')
 
 
+class IngredientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit',)
+
+
+class IngredientInRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'ingredient', 'recipe', 'amount',)
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UserSerializer(read_only=True)
@@ -242,7 +242,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeWriteSerializer(serializers.ModelSerializer):
+class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     tags = serializers.ListField(
         child=serializers.SlugRelatedField(
             slug_field='id',
