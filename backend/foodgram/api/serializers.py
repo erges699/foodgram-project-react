@@ -1,5 +1,9 @@
+import base64
+import six
+import uuid
 from django.contrib.auth import get_user_model
-# from django.shortcuts import get_object_or_404
+from django.core.files.base import ContentFile
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
@@ -12,7 +16,8 @@ User = get_user_model()
 
 class Base64ImageField(serializers.ImageField):
     """
-    A Django REST framework field for handling image-uploads through raw post data.
+    A Django REST framework field for handling image-uploads through
+    post data.
     It uses base64 for encoding and decoding the contents of the file.
 
     Heavily based on
@@ -22,11 +27,6 @@ class Base64ImageField(serializers.ImageField):
     """
 
     def to_internal_value(self, data):
-        from django.core.files.base import ContentFile
-        import base64
-        import six
-        import uuid
-
         if isinstance(data, six.string_types):
             if 'data:' in data and ';base64,' in data:
                 header, data = data.split(';base64,')
@@ -204,11 +204,7 @@ class RecipeMinifiedSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UserSerializer(read_only=True)
-    image = Base64ImageField(max_length=None, use_url=True,)
-    ingredients = IngredientInRecipeSerializer(
-        source="ingredient_in_recipe",
-        many=True
-    )
+    ingredients = IngredientInRecipeSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -244,6 +240,60 @@ class RecipeSerializer(serializers.ModelSerializer):
             user.is_authenticated and
             ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
         )
+
+
+class RecipeWriteSerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(
+        child=serializers.SlugRelatedField(
+            slug_field='id',
+            queryset=Tag.objects.all(),
+        ),
+    )
+    image = Base64ImageField(max_length=None, use_url=True,)
+    ingredients = IngredientInRecipeSerializer(
+        source="ingredient_in_recipe",
+        many=True
+    )
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'author',
+            'tags',
+            'image',
+            'text',
+            'ingredients',
+            'cooking_time',
+        )
+
+    def add_ingredients_and_tags(self, instance, validated_data):
+        ingredients, tags = (
+            validated_data.pop('ingredients'), validated_data.pop('tags')
+        )
+        for ingredient in ingredients:
+            count_of_ingredient, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
+                amount=ingredient['amount'],
+            )
+            instance.ingredients.add(count_of_ingredient)
+        for tag in tags:
+            instance.tags.add(tag)
+        return instance
+
+    def create(self, validated_data):
+        saved = {}
+        saved['ingredients'] = validated_data.pop('ingredients')
+        saved['tags'] = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        return self.add_ingredients_and_tags(recipe, saved)
+
+    def update(self, instance, validated_data):
+        instance.ingredients.clear()
+        instance.tags.clear()
+        instance = self.add_ingredients_and_tags(instance, validated_data)
+        return super().update(instance, validated_data)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

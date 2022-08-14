@@ -1,18 +1,22 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import (filters, permissions, status, viewsets)
+from django_filters.rest_framework.backends import DjangoFilterBackend
+from rest_framework import (filters, permissions, status, viewsets,)
 from rest_framework.decorators import action
 from rest_framework.response import Response
-# from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST
+)
 
 from .filters import RecipeFilter
 # from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
-    RecipeFollowSerializer, ShoppingCartSerializer,
-    # SignUpSerializer, TokenSerializer, UserSerializer,
+    RecipeFollowSerializer, ShoppingCartSerializer, RecipeWriteSerializer
 )
 from recipes.models import Ingredient, Tag, Recipe
-# from users.models import User
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -32,17 +36,48 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    http_method_names = ('get', 'post', 'put', 'patch', 'delete',)
 
-    def get_queryset(self):
-        is_favorited = self.request.GET.get("is_favorited")
-        is_in_shopping_cart = self.request.GET.get("is_in_shopping_cart")
-        if is_favorited:
-            return Recipe.objects.filter(favourited__user=self.request.user)
-        if is_in_shopping_cart:
-            return Recipe.objects.filter(buying__user=self.request.user)
-        return Recipe.objects.all().order_by('-id')
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeWriteSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        serializer = RecipeSerializer(
+            instance=serializer.instance,
+            context={'request': self.request}
+        )
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=HTTP_201_CREATED, headers=headers
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        serializer = RecipeSerializer(
+            instance=serializer.instance,
+            context={'request': self.request},
+        )
+        return Response(
+            serializer.data, status=HTTP_200_OK
+        )
 
 
 class ShoppingCartView(viewsets.ModelViewSet):
