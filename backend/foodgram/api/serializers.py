@@ -161,15 +161,27 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit',)
 
 
-class IngredientInRecipeSerializer(serializers.ModelSerializer):
+class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'ingredient', 'recipe', 'amount',)
+        fields = ('id', 'name', 'measurement_unit', 'amount',)
+
+
+class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'amount',)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = IngredientInRecipeSerializer(many=True)
+    ingredients = IngredientInRecipeReadSerializer(many=True)
     tags = TagSerializer(many=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -210,11 +222,11 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    ingredients = IngredientInRecipeSerializer(many=True)
+    ingredients = RecipeIngredientWriteSerializer(many=True)
     tags = serializers.SlugRelatedField(
         many=True,
-        slug_field='slug',
-        queryset=TagSerializer.objects.all()
+        slug_field='id',
+        queryset=Tag.objects.all()
     )
     image = Base64ImageField(max_length=None, use_url=True,)
 
