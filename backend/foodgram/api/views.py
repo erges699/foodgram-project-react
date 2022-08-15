@@ -1,7 +1,7 @@
 from rest_framework import (filters, permissions, status, viewsets,)
 
 from .serializers import (
-    IngredientSerializer, TagSerializer, RecipeSerializer,
+    IngredientSerializer, TagSerializer, RecipeSerializer, RecipeCreateUpdateSerializer,
     RecipeFollowSerializer, ShoppingCartSerializer 
 )
 from recipes.models import Ingredient, Tag, Recipe
@@ -26,7 +26,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeCreateUpdateSerializer
     # permission_classes = (permissions.AllowAny,)
 
 

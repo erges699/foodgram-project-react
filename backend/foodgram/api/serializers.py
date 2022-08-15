@@ -187,6 +187,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
+    ingredients = IngredientSerializer(many=True)
 
     class Meta:
         model = Recipe
