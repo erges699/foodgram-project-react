@@ -65,6 +65,34 @@ class Ingredient(models.Model):
         return f'{self.name}'
 
 
+class IngredientInRecipe(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        verbose_name='Ингредиент',
+        on_delete=models.CASCADE
+    )
+    amount = models.PositiveIntegerField(
+        verbose_name='Количество',
+        validators=[MinValueValidator(1)],
+        default=1
+    )
+
+    class Meta:
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
+        constraints = (
+            models.UniqueConstraint(
+                fields=('ingredient', 'amount',),
+                name='unique_amount_of_ingredient',
+            ),
+        )
+
+    def __str__(self):
+        return (
+            f'{self.ingredient}: {self.amount}'
+        )
+
+
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
@@ -84,7 +112,7 @@ class Recipe(models.Model):
         default='',
     )
     ingredients = models.ManyToManyField(
-        Ingredient,
+        IngredientInRecipe,
         related_name='recipes',
         verbose_name='Список ингредиентов',
     )
@@ -108,36 +136,3 @@ class Recipe(models.Model):
 
     def get_absolute_url(self):
         return reverse('recipe', args=[self.pk])
-
-
-class IngredientInRecipe(models.Model):
-    ingredient = models.ForeignKey(
-        Ingredient,
-        verbose_name='Ингредиент',
-        on_delete=models.CASCADE
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        verbose_name='Рецепт',
-        on_delete=models.CASCADE
-    )
-    amount = models.PositiveIntegerField(
-        verbose_name='Количество',
-        validators=[MinValueValidator(1)],
-        default=1
-    )
-
-    class Meta:
-        verbose_name = 'Ингредиент в рецепте'
-        verbose_name_plural = 'Ингредиенты в рецепте'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('ingredient', 'amount',),
-                name='unique_amount_of_ingredient',
-            ),
-        )
-
-    def __str__(self):
-        return (
-            f'{self.ingredient}: {self.amount}'
-        )

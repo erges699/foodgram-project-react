@@ -193,14 +193,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id',
-            'name',
-            'author',
+            'ingredients',
             'tags',
             'image',
+            'name',
             'text',
-            'ingredients',
             'cooking_time',
         )
+    
+    def create(self, validated_data):
+        recipe = Recipe.objects.create(**validated_data)
+
+        return super().create(validated_data)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

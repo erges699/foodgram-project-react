@@ -26,8 +26,13 @@ class TagViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeCreateUpdateSerializer
+    serializer_class = RecipeSerializer
     # permission_classes = (permissions.AllowAny,)
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return RecipeCreateUpdateSerializer
+        return RecipeSerializer
 
 
 class ShoppingCartView(viewsets.ModelViewSet):
