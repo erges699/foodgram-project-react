@@ -8,7 +8,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
 from recipes.models import (
-    Ingredient, Tag, Recipe, IngredientInRecipe, 
+    Ingredient, Tag, Recipe, IngredientInRecipe,
 )
 from users.models import (
     Follow, ShoppingCart, Favorite
@@ -169,6 +169,11 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    ingredients = IngredientInRecipeSerializer(many=True)
+    tags = TagSerializer(many=True)
+    author = UserSerializer(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -185,9 +190,33 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_in_shopping_cart',
         )
 
+    def get_user(self):
+        return self.context['request'].user
+
+    def get_is_favorited(self, obj):
+        user = self.get_user()
+        return (
+            user.is_authenticated and
+            user.favorited.filter(recipe=obj).exists
+        )
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.get_user()
+        request = self.context.get('request')
+        return (
+            user.is_authenticated and
+            ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
+        )
+
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    ingredients = IngredientSerializer(many=True)
+    ingredients = IngredientInRecipeSerializer(many=True)
+    tags = serializers.SlugRelatedField(
+        many=True,
+        slug_field='slug',
+        queryset=TagSerializer.objects.all()
+    )
+    image = Base64ImageField(max_length=None, use_url=True,)
 
     class Meta:
         model = Recipe
@@ -200,11 +229,33 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-    
-    def create(self, validated_data):
-        recipe = Recipe.objects.create(**validated_data)
 
-        return super().create(validated_data)
+    def add_ingredients_and_tags(self, instance, validated_data):
+        ingredients, tags = (
+            validated_data.pop('ingredients'), validated_data.pop('tags')
+        )
+        for ingredient in ingredients:
+            ingredients_count, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
+                amount=ingredient['amount'],
+            )
+            instance.ingredients.add(ingredients_count)
+        for tag in tags:
+            instance.tags.add(tag)
+        return instance
+
+    def create(self, validated_data):
+        saved = {}
+        saved['ingredients'] = validated_data.pop('ingredients')
+        saved['tags'] = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        return self.add_ingredients_and_tags(recipe, saved)
+
+    def update(self, instance, validated_data):
+        instance.ingredients.clear()
+        instance.tags.clear()
+        instance = self.add_ingredients_and_tags(instance, validated_data)
+        return super().update(instance, validated_data)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -212,7 +263,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ('user', 'recipe',)
-
 
 
 class FollowerSerializer(serializers.ModelSerializer):
