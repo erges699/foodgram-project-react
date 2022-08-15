@@ -2,9 +2,10 @@ from rest_framework import (filters, permissions, status, viewsets,)
 
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
-    RecipeFollowSerializer, ShoppingCartSerializer, RecipeWriteSerializer
+    RecipeFollowSerializer, ShoppingCartSerializer 
 )
 from recipes.models import Ingredient, Tag, Recipe
+from users.models import ShoppingCart
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
