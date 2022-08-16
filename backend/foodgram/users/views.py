@@ -1,17 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from djoser.views import UserViewSet
-from rest_framework import status
+# from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import ListAPIView
 # from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+# from rest_framework.response import Response
 
 # from .paginators import SmallPageNumberPagination
 
-from .models import Follow
+# from .models import Follow
+from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
 from recipes.models import IngredientInRecipe
 from api.serializers import (FollowSerializer, ShowFollowsSerializer,
                              UserSerializer, FollowerSerializer)
@@ -36,7 +37,7 @@ def shopping_cart_file(user):
 
 
 @api_view(['GET', ])
-# @permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def download_shopping_cart(request):
     user = request.user
     txt_file_output = shopping_cart_file(user)
@@ -48,12 +49,16 @@ def download_shopping_cart(request):
 
 
 class UsersViewSet(UserViewSet):
+    queryset = User.objects.all()
+    lookup_field = 'username'
     serializer_class = UserSerializer
+    permission_classes = (IsAdmin)
+    # pagination_class = pagination.PageNumberPagination
 
 
 class FollowViewSet(ListAPIView):
     serializer_class = ShowFollowsSerializer
     # permission_classes = [IsAuthenticated]
-    
+
     def get_queryset(self):
         return User.objects.filter(following__user=self.request.user)

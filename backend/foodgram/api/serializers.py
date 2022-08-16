@@ -242,31 +242,30 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def add_ingredients_and_tags(self, instance, validated_data):
-        ingredients, tags = (
-            validated_data.pop('ingredients'), validated_data.pop('tags')
-        )
-        for ingredient in ingredients:
-            ingredients_count, _ = IngredientInRecipe.objects.get_or_create(
-                ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
-                amount=ingredient['amount'],
+    def ingredients_tags_add(self, instance, ingrs_data, tgs_data):
+        for ingredient_data in ingrs_data:
+            ingredient_amount, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient=get_object_or_404(
+                    Ingredient,
+                    pk=ingredient_data['id']
+                ),
+                amount=ingredient_data['amount'],
             )
-            instance.ingredients.add(ingredients_count)
-        for tag in tags:
-            instance.tags.add(tag)
+            instance.ingredients_data.add(ingredient_amount)
+        for tag_data in tgs_data:
+            instance.tags_data.add(tag_data)
         return instance
 
     def create(self, validated_data):
-        saved = {}
-        saved['ingredients'] = validated_data.pop('ingredients')
-        saved['tags'] = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        return self.add_ingredients_and_tags(recipe, saved)
+        return self.ingredients_tags_add(recipe, ingredients_data, tags_data)
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
         instance.tags.clear()
-        instance = self.add_ingredients_and_tags(instance, validated_data)
+        instance = self.ingredients_tags_add(instance, validated_data)
         return super().update(instance, validated_data)
 
 
