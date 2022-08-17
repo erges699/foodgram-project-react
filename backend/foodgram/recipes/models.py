@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 
+User = get_user_model()
+
 CHOICES = (
     ('#FFFFFF', 'Белый'),
     ('#000000', 'Чёрный'),
@@ -13,8 +15,6 @@ CHOICES = (
     ('#FFC0CB', 'Розовый'),
     ('#D2691E', 'Шоколадный'),
 )
-
-User = get_user_model()
 
 
 class Tag(models.Model):

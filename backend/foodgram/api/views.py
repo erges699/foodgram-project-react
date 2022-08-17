@@ -19,7 +19,7 @@ from users.models import ShoppingCart
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    # permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.AllowAny, )
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -28,14 +28,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    # permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    # permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
@@ -78,4 +78,4 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class ShoppingCartView(viewsets.ModelViewSet):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
-    # permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.AllowAny, )

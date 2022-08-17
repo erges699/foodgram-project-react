@@ -1,9 +1,9 @@
 import base64
 import six
 import uuid
-from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
@@ -11,11 +11,10 @@ from recipes.models import (
     Ingredient, Tag, Recipe, IngredientInRecipe,
 )
 from users.models import (
-    Follow, ShoppingCart, Favorite
+    Follow, ShoppingCart, Favorite,
 )
 
 User = get_user_model()
-
 
 class Base64ImageField(serializers.ImageField):
     """
@@ -60,7 +59,7 @@ class UserCreateSerializer(UserCreateSerializer):
         )
 
 
-class UserGetSerializer(UserSerializer):
+class UserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -79,13 +78,6 @@ class UserGetSerializer(UserSerializer):
             user.is_authenticated and
             Follow.objects.filter(user=user, author=author.id).exists()
         )
-
-
-class UserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name',)
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -183,7 +175,6 @@ class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientInRecipeReadSerializer(many=True)
     tags = TagSerializer(many=True)
-    author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -201,6 +192,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_favorited',
             'is_in_shopping_cart',
         )
+        read_only_fields = ('author',)
 
     def get_user(self):
         return self.context['request'].user
