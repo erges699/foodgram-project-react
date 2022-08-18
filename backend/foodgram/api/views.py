@@ -1,4 +1,4 @@
-from rest_framework import (filters, permissions, status, viewsets,)
+from rest_framework import (filters, viewsets,)
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
@@ -25,7 +25,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
+class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     # permission_classes = (permissions.AllowAny,)
@@ -44,35 +44,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        serializer = RecipeSerializer(
-            instance=serializer.instance,
-            context={'request': self.request}
-        )
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=HTTP_201_CREATED, headers=headers
-        )
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer = RecipeSerializer(
-            instance=serializer.instance,
-            context={'request': self.request},
-        )
-        return Response(
-            serializer.data, status=HTTP_200_OK
-        )
 
 
 class ShoppingCartView(viewsets.ModelViewSet):

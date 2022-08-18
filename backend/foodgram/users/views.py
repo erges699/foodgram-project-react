@@ -5,6 +5,7 @@ from django.db.models import Sum
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 # from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from rest_framework.response import Response
 from .models import Follow
 from recipes.models import IngredientInRecipe
 from api.serializers import (FollowSerializer, ShowFollowsSerializer,
-                             UserSerializer, FollowerSerializer)
+                             UserSerializer, UserCreateSerializer, FollowerSerializer)
 
 User = get_user_model()
 
@@ -47,9 +48,14 @@ def download_shopping_cart(request):
     return response
 
 
-class UsersViewSet(UserViewSet):
+class UsersViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-
+    
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return UserCreateSerializer
+        return UserSerializer
 
 class FollowViewSet(ListAPIView):
     serializer_class = ShowFollowsSerializer
