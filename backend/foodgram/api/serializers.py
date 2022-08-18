@@ -140,24 +140,28 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurement_unit',)
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'name', 'measurement_unit', 'amount',)
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'amount',)
+        fields = ('id', 'ingredient', 'amount',)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    ingredients = IngredientInRecipeReadSerializer(many=True)
+    tags = TagSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -170,9 +174,28 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'ingredients',
             'cooking_time',
+            'is_favorited',
+            'is_in_shopping_cart',            
         )
-        fields_read_only = ('author')
+        read_only_fields= ('author',)
 
+    def get_user(self):
+        return self.context['request'].user
+
+    def get_is_favorited(self, obj):
+        user = self.get_user()
+        return (
+            user.is_authenticated and
+            user.favorited.filter(recipe=obj).exists
+        )
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.get_user()
+        request = self.context.get('request')
+        return (
+            user.is_authenticated and
+            ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
+        )
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientWriteSerializer(many=True)
@@ -194,7 +217,33 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+        read_only_fields= ('author',)
 
+    def ingredients_tags_add(self, instance, ingrs_data, tgs_data):
+        for ingredient_data in ingrs_data:
+            ingredient_amount, _ = IngredientInRecipe.objects.get_or_create(
+                ingredient=get_object_or_404(
+                    Ingredient,
+                    pk=ingredient_data['id']
+                ),
+                amount=ingredient_data['amount'],
+            )
+            instance.ingredients_data.add(ingredient_amount)
+        for tag_data in tgs_data:
+            instance.tags_data.add(tag_data)
+        return instance
+
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        return self.ingredients_tags_add(recipe, ingredients_data, tags_data)
+
+    def update(self, instance, validated_data):
+        instance.ingredients.clear()
+        instance.tags.clear()
+        instance = self.ingredients_tags_add(instance, validated_data)
+        return super().update(instance, validated_data)
 
 class FavoriteSerializer(serializers.ModelSerializer):
 
