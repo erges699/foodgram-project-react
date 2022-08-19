@@ -152,6 +152,7 @@ class IngredientsInRecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
+    # ingredient = serializers.PrimaryKeyRelatedField()
 
     class Meta:
         model = IngredientsInRecipe
@@ -223,9 +224,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def ingredients_tags_add(self, instance, ingrs_data, tgs_data):
         for ingredient_data in ingrs_data:
             ingredient_amount, _ = IngredientsInRecipe.objects.get_or_create(
+                recipe=instance,
                 ingredient=get_object_or_404(
                     Ingredient,
-                    pk=ingredient_data['id']
+                    pk=ingredient_data['ingredient'].id
                 ),
                 amount=ingredient_data['amount'],
             )
