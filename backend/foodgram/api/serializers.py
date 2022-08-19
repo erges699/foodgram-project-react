@@ -157,7 +157,7 @@ class IngredientsInRecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
-    id = serializers.SlugRelatedField(
+    ingredient = serializers.SlugRelatedField(
         slug_field='id',
         queryset=Ingredient.objects.all()
     )
@@ -252,7 +252,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         # return self.ingredients_tags_add(recipe, ingredients_data, tags_data)
         instance = super().create(validated_data)
         for ingr in ingredients_data:
-            instance.ingredients.add(ingr['ingredient'].id)
+            instance.ingredients.add(ingr['id'], ingr['amount'])
         for tag in tags_data:
             instance.tags.add(tag)
         return instance
