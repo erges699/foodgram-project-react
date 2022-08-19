@@ -1,7 +1,5 @@
-from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.urls import reverse
 
 from recipes.models import Recipe
 
@@ -12,12 +10,12 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='to_shopping_cart',
+        related_name='shopping_cart',
         verbose_name='Покупатель',
     )
     recipes = models.ManyToManyField(
         Recipe,
-        related_name='in_shopping_cart',
+        related_name='shopping_cart',
         verbose_name='Покупки',
     )
 
@@ -36,16 +34,18 @@ class Follow(models.Model):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name='follower')
+        related_name='follower',
+        )
     author = models.ForeignKey(
         User,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name='following')
+        related_name='following',
+        )
 
     class Meta:
-        ordering = ('user', 'author',)
+        ordering = ('-user',)
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = [
@@ -61,11 +61,15 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorite')
+        verbose_name='Пользователь',
+        related_name='favorite',
+        )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorited')
+        verbose_name='Рецепт',
+        related_name='favorite',
+        )
 
     class Meta:
         ordering = ('user', 'recipe',)
