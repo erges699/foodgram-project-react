@@ -8,7 +8,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
 from recipes.models import (
-    Ingredient, Tag, Recipe, IngredientInRecipe,
+    Ingredient, Tag, Recipe, IngredientsInRecipe,
 )
 from users.models import (
     Follow, ShoppingCart, Favorite
@@ -143,22 +143,23 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
+class IngredientsInRecipeReadSerializer(serializers.ModelSerializer):
+    name = IngredientSerializer(source='name')
 
     class Meta:
-        model = IngredientInRecipe
+        model = IngredientsInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = IngredientInRecipe
+        model = IngredientsInRecipe
         fields = ('id', 'ingredient', 'amount',)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = IngredientInRecipeReadSerializer(many=True)
+    ingredients = IngredientsInRecipeReadSerializer(many=True)
     tags = TagSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -221,7 +222,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def ingredients_tags_add(self, instance, ingrs_data, tgs_data):
         for ingredient_data in ingrs_data:
-            ingredient_amount, _ = IngredientInRecipe.objects.get_or_create(
+            ingredient_amount, _ = IngredientsInRecipe.objects.get_or_create(
                 ingredient=get_object_or_404(
                     Ingredient,
                     pk=ingredient_data['id']

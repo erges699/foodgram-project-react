@@ -65,7 +65,58 @@ class Ingredient(models.Model):
         return f'{self.name}'
 
 
-class IngredientInRecipe(models.Model):
+class Recipe(models.Model):
+    author = models.ForeignKey(
+        User,
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
+        related_name='recipes'
+    )
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=200
+    )
+    image = models.ImageField(
+        verbose_name='Ссылка на картинку на сайте',
+    )
+    text = models.TextField(
+        verbose_name='Описание',
+        default='',
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='recipes',
+        through='IngredientsInRecipe',
+        verbose_name='Список ингредиентов',
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        verbose_name='Список тегов',
+    )
+    cooking_time = models.PositiveIntegerField(
+        verbose_name='Время приготовления (в минутах)',
+        validators=[MinValueValidator(1)],
+    )
+
+    class Meta:
+        ordering = ('-pk', )
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return f'{self.name} ({self.author})'
+
+    def get_absolute_url(self):
+        return reverse('recipe', args=[self.pk])
+
+
+class IngredientsInRecipe(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Рецепт',
+        on_delete=models.CASCADE
+    )
     ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='Ингредиент',
@@ -91,48 +142,3 @@ class IngredientInRecipe(models.Model):
         return (
             f'{self.ingredient}: {self.amount}'
         )
-
-
-class Recipe(models.Model):
-    author = models.ForeignKey(
-        User,
-        verbose_name='Автор',
-        on_delete=models.CASCADE,
-        related_name='recipes'
-    )
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=200
-    )
-    image = models.ImageField(
-        verbose_name='Ссылка на картинку на сайте',
-    )
-    text = models.TextField(
-        verbose_name='Описание',
-        default='',
-    )
-    ingredients = models.ManyToManyField(
-        IngredientInRecipe,
-        related_name='recipes',
-        verbose_name='Список ингредиентов',
-    )
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Список тегов',
-    )
-    cooking_time = models.PositiveIntegerField(
-        verbose_name='Время приготовления (в минутах)',
-        validators=[MinValueValidator(1)],
-    )
-
-    class Meta:
-        ordering = ('-pk', )
-        verbose_name = 'Рецепт'
-        verbose_name_plural = 'Рецепты'
-
-    def __str__(self):
-        return f'{self.name} ({self.author})'
-
-    def get_absolute_url(self):
-        return reverse('recipe', args=[self.pk])

@@ -13,7 +13,7 @@ from rest_framework.response import Response
 # from .paginators import SmallPageNumberPagination
 
 from .models import Follow
-from recipes.models import IngredientInRecipe
+from recipes.models import IngredientsInRecipe
 from api.serializers import (FollowSerializer, ShowFollowsSerializer,
                              UserSerializer, UserCreateSerializer, FollowerSerializer)
 
@@ -21,7 +21,7 @@ User = get_user_model()
 
 
 def shopping_cart_file(user):
-    ingredients = IngredientInRecipe.objects.filter(
+    ingredients = IngredientsInRecipe.objects.filter(
         recipe__in_shopping_cart__user=user).values(
         'ingredient__name',
         'ingredient__unit').annotate(total=Sum('amount'))
