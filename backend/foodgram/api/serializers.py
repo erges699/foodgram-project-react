@@ -222,32 +222,43 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         read_only_fields= ('author',)
 
     def ingredients_tags_add(self, instance, ingrs_data, tgs_data):
-        for ingredient_data in ingrs_data:
-            ingredient_amount, _ = IngredientsInRecipe.objects.get_or_create(
+        for ingr in ingrs_data:
+            current_ingr, status = IngredientsInRecipe.objects.get_or_create(
                 recipe=instance,
                 ingredient=get_object_or_404(
                     Ingredient,
-                    pk=ingredient_data['ingredient'].id
+                    pk=ingr['ingredient'].id
                 ),
-                amount=ingredient_data['amount'],
+                amount=ingr['amount'],
             )
-            instance.ingredients_data.add(ingredient_amount)
-        for tag_data in tgs_data:
-            instance.tags_data.add(tag_data)
+            current_ingredient = get_object_or_404(
+                    Ingredient,
+                    pk=ingr['ingredient'].id
+                )
+            instance.ingredients.add(current_ingr)
+        for tag in tgs_data:
+            instance.tags.add(tag)
         return instance
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
-        return self.ingredients_tags_add(recipe, ingredients_data, tags_data)
+        # recipe = Recipe.objects.create(**validated_data)
+        # return self.ingredients_tags_add(recipe, ingredients_data, tags_data)
+        instance = super().create(validated_data)
+        for ingr in ingredients_data:
+            instance.ingredients.add(ingr['ingredient'].id)
+        for tag in tags_data:
+            instance.tags.add(tag)
+        return instance
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
         instance.tags.clear()
-        instance = self.ingredients_tags_add(instance, validated_data)
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')        
+        instance = self.ingredients_tags_add(instance, ingredients_data, tags_data)
         return super().update(instance, validated_data)
-
 class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
