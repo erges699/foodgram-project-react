@@ -2,6 +2,7 @@ from rest_framework import (filters, viewsets, status)
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework.status import (
     HTTP_200_OK,
@@ -10,6 +11,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST
 )
 
+from .filters import RecipeFilter
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
     RecipeCreateUpdateSerializer, ShoppingCartSerializer,
@@ -38,6 +40,8 @@ class TagViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = RecipeFilter
     # permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):

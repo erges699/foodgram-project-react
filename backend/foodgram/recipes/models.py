@@ -111,7 +111,10 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления (в минутах)',
-        validators=[MinValueValidator(1)],
+        validators=[MinValueValidator(
+            1,
+            message='Минимальное время приготовления 1 минута')
+        ],
         default=1,
     )
 
@@ -126,11 +129,18 @@ class Recipe(models.Model):
     def get_absolute_url(self):
         return reverse('recipe', args=[self.pk])
 
+    def get_number_add_to_favourite(self):
+        return self.favorites.count()
+
+    def get_number_ingredients(self):
+        return self.ingredients.count()
+
 
 class IngredientsInRecipe(models.Model):
     recipes = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
+        related_name='recipe_ingredient',
         on_delete=models.CASCADE
     )
     ingredients = models.ForeignKey(

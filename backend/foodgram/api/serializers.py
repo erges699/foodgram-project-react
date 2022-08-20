@@ -95,28 +95,31 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class IngredientsInRecipeReadSerializer(serializers.ModelSerializer):
     ingredient_name = serializers.CharField(source='name')
+    amount = serializers.IntegerField()
 
     class Meta:
         model = Ingredient
-        fields = ('id', 'ingredient_name', 'measurement_unit', 'recipe_ingredient')
+        fields = ('id', 'ingredient_name', 'measurement_unit', 'amount')
 
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    id = serializers.IntegerField(source='ingredients.id')
+    name = serializers.CharField(source='ingredients.name', read_only=True)
+    measurement_unit = serializers.CharField(
+        source='ingredients.measurement_unit',
+        read_only=True
+    )
     amount = serializers.IntegerField()
-    # recipe_ingredient = serializers.SlugRelatedField(
-    #     slug_field='name',
-    #     queryset=Ingredient.objects.all()
-    # )
 
     class Meta:
         model = IngredientsInRecipe
-        fields = ('id', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientReadSerializer(
-        many=True)
+        many=True,
+        source='recipe_ingredient')
     tags = TagSerializer(many=True)
     # is_favorited = serializers.SerializerMethodField()
     # is_in_shopping_cart = serializers.SerializerMethodField()
@@ -132,6 +135,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
+            # 'is_favorited',
+            # 'is_in_shopping_cart',
             'name',
             'image',
             'text',
@@ -139,17 +144,44 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
+    def get_is_favorited(self, obj):
+        """
+        Функция проверки добавления рецепта в избранное.
+        """
+
+        if self.context.get('request').method == 'POST':
+            return False
+
+        if self.context.get('request').user.is_authenticated:
+            return obj.is_favorited
+        return False
+
+    def get_is_in_shopping_cart(self, obj):
+        """
+        Функция проверки добавления рецепта рецепта в список покупок.
+        """
+
+        if self.context.get('request').method == 'POST':
+            return False
+
+        if self.context.get('request').user.is_authenticated:
+            return obj.is_in_shopping_cart
+        return False
+
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    id = serializers.IntegerField(source='ingredients.id')
+    amount = serializers.IntegerField()
 
     class Meta:
         model = IngredientsInRecipe
-        fields = ('id', 'amount',)
+        fields = ('id', 'amount')
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientWriteSerializer(many=True)
+    ingredients = RecipeIngredientWriteSerializer(
+        many=True,
+        source='recipe_ingredient')
     tags = serializers.SlugRelatedField(
         many=True,
         slug_field='id',
@@ -170,32 +202,27 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('author',)
 
-    def ingredients_tags_add(self, instance, ingrs_data, tgs_data):
-        for ingr in ingrs_data:
-            current_ingr, status = IngredientsInRecipe.objects.get_or_create(
-                recipe=instance,
-                ingredient=get_object_or_404(
-                    Ingredient,
-                    pk=ingr['ingredient'].id
-                ),
-                amount=ingr['amount'],
+    def ingredients_tags_add(self, instance, ingrs_data):
+        IngredientsInRecipe.objects.bulk_create(
+                [
+                    IngredientsInRecipe(
+                        ingredient_id=ingredient['ingredient']['id'],
+                        amount=ingredient['amount'],
+                        recipe=instance
+                    )
+                    for ingredient in ingrs_data
+                ]
             )
-            instance.ingredients.add(current_ingr)
-        for tag in tgs_data:
-            instance.tags.add(tag)
-        return instance
 
     def create(self, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
-        # recipe = Recipe.objects.create(**validated_data)
-        # return self.ingredients_tags_add(recipe, ingredients_data, tags_data)
+        ingredients_data = validated_data.pop('recipe_ingredient')
+        # tags_data = validated_data.pop('tags')
+        # for ingr in ingredients_data:
+        #     instance.ingredients.add(ingr['id'].id, ingr['amount'])
+        # for tag in tags_data:
+        #     instance.tags.add(tag)
         instance = super().create(validated_data)
-        for ingr in ingredients_data:
-            instance.ingredients.add(ingr['id'].id, ingr['amount'])
-        for tag in tags_data:
-            instance.tags.add(tag)
-        return instance
+        return self.ingredients_tags_add(instance, ingredients_data)
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
