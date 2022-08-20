@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -206,13 +205,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         IngredientsInRecipe.objects.bulk_create(
                 [
                     IngredientsInRecipe(
-                        ingredient_id=ingredient['ingredient']['id'],
+                        ingredients_id=ingredient['ingredients']['id'],
                         amount=ingredient['amount'],
-                        recipe=instance
+                        recipes=instance
                     )
                     for ingredient in ingrs_data
                 ]
             )
+        return instance
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('recipe_ingredient')
