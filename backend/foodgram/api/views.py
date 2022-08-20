@@ -13,7 +13,7 @@ from rest_framework.status import (
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
     RecipeCreateUpdateSerializer, ShoppingCartSerializer,
-    FavoriteSerializer, ShoppingCartSerializer
+    FavoriteSerializer
 )
 from recipes.models import Ingredient, Tag, Recipe
 from users.models import ShoppingCart, Favorite
@@ -73,7 +73,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        instance, _ = ShoppingCart.objects.get_or_create(user=self.request.user)
+        instance, _ = ShoppingCart.objects.get_or_create(
+            user=self.request.user
+            )
 
         if request.method == 'DELETE':
             if not instance.recipes.filter(pk=pk).exists():

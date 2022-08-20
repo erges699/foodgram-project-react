@@ -64,7 +64,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        ordering = ('name',)
+        ordering = ('-name',)
         constraints = [
             models.UniqueConstraint(
                 fields=('name', 'measurement_unit'),
@@ -90,6 +90,12 @@ class Recipe(models.Model):
         related_name='recipes',
         help_text='Автор рецепта',
     )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='ingredients',
+        through='IngredientsInRecipe',
+        verbose_name='Список ингредиентов',
+    )
     name = models.CharField(
         verbose_name='Название',
         max_length=200
@@ -102,12 +108,6 @@ class Recipe(models.Model):
         verbose_name='Описание',
         default='',
         help_text='Введите текст рецепта',
-    )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        related_name='recipes',
-        through='IngredientsInRecipe',
-        verbose_name='Список ингредиентов',
     )
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления (в минутах)',
@@ -128,16 +128,15 @@ class Recipe(models.Model):
 
 
 class IngredientsInRecipe(models.Model):
-    recipe = models.ForeignKey(
+    recipes = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
-        related_name='ingredients_recipes',
         on_delete=models.CASCADE
     )
-    ingredient = models.ForeignKey(
+    ingredients = models.ForeignKey(
         Ingredient,
         verbose_name='Ингредиент',
-        related_name='ingredients_recipes',
+        related_name='recipe_ingredient',
         on_delete=models.CASCADE
     )
     amount = models.PositiveSmallIntegerField(
@@ -151,12 +150,12 @@ class IngredientsInRecipe(models.Model):
         verbose_name_plural = 'Ингредиенты в рецепте'
         constraints = (
             models.UniqueConstraint(
-                fields=('recipe', 'ingredient',),
+                fields=('recipes', 'ingredients',),
                 name='unique_recipe_ingredient',
             ),
         )
 
     def __str__(self):
         return (
-            f'{self.ingredient}: {self.amount}'
+            f'{self.ingredients}: {self.amount}'
         )
