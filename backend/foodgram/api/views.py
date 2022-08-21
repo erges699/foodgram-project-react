@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .filters import RecipeFilter
+from .permissions import IsOwnerOrReadOnly
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
     RecipeCreateUpdateSerializer, IngredientsInRecipe,
@@ -39,7 +40,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ('list', 'retrieve'):
             permission_classes = (permissions.AllowAny,)
         elif self.action in ('update', 'destroy', 'partial_update'):
-            permission_classes = (permissions.IsOwnerOrReadOnly,)
+            permission_classes = (IsOwnerOrReadOnly,)
         else:
             permission_classes = (permissions.IsAuthenticated,)
         return [permission() for permission in permission_classes]

@@ -36,21 +36,21 @@ class UserSerializer(UserSerializer):
             'first_name',
             'last_name',
             'password',
-            'is_subscribed',
+            # 'is_subscribed',
         )
-        read_only_fields = ('is_subscribed', )
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=("username", "email"),
-                message=(
-                    "Задано не уникальное сочетание полей email " "и username."
-                ),
-            ),
-        ]
+        # read_only_fields = ('is_subscribed', )
+        # extra_kwargs = {
+        #     'password': {'write_only': True}
+        # }
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=User.objects.all(),
+        #         fields=("username", "email"),
+        #         message=(
+        #             "Задано не уникальное сочетание полей email " "и username."
+        #         ),
+        #     ),
+        # ]
 
     def get_is_subscribed(self, obj):
         if self.context.get('request').path_info == '/api/users/me/':
@@ -137,8 +137,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True,
         source='recipe_ingredient')
     tags = TagSerializer(many=True)
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    # is_favorited = serializers.SerializerMethodField()
+    # is_in_shopping_cart = serializers.SerializerMethodField()
     author = UserSerializer(
         read_only=True,
         default=serializers.CurrentUserDefault(),
@@ -151,8 +151,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
-            'is_favorited',
-            'is_in_shopping_cart',
+            # 'is_favorited',
+            # 'is_in_shopping_cart',
             'name',
             'image',
             'text',
