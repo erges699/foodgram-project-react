@@ -13,12 +13,12 @@ router_v1.register('recipes', RecipeViewSet, basename='recipes')
 router_v1.register('tags', TagViewSet, basename='tags')
 router_v1.register('ingredients', IngredientViewSet, basename='ingredients')
 router_v1.register(
-        'recipes/(?P<id>[^/.]+)/favorite',
+        r'recipes/(?P<id>\d+)/favorite',
         FavouriteViewSet,
         basename='favorite'
 )
 router_v1.register(
-    'recipes/(?P<id>[^/.]+)/shopping_cart',
+    r'recipes/(?P<id>\d+)/shopping_cart',
     ShoppingCartViewSet,
     basename='shoppinglist'
 )
