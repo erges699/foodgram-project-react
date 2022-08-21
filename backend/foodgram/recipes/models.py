@@ -107,21 +107,6 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name='Описание',
         default='',
-    )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        related_name='recipes',
-        through='IngredientInRecipe',
-        verbose_name='Список ингредиентов',
-    )
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Список тегов',
-    )
-    cooking_time = models.PositiveIntegerField(
-        verbose_name='Время приготовления (в минутах)',
-        validators=[MinValueValidator(1)],
         help_text='Введите текст рецепта',
     )
     cooking_time = models.PositiveIntegerField(
