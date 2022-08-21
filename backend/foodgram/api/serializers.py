@@ -1,7 +1,7 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
+# from rest_framework.validators import UniqueTogetherValidator
 
 from .fields import Base64ImageField
 from recipes.models import (
@@ -25,7 +25,7 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class UserSerializer(UserSerializer):
-    """Done"""
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -36,8 +36,16 @@ class UserSerializer(UserSerializer):
             'first_name',
             'last_name',
             'password',
-            # 'is_subscribed',
+            'is_subscribed',
         )
+    
+    def get_is_subscribed(self, author):
+        user = self.context.get('request').user
+        return not user.is_anonymous and Follow.objects.filter(
+            user=user,
+            author=author.id
+        ).exists()
+
         # read_only_fields = ('is_subscribed', )
         # extra_kwargs = {
         #     'password': {'write_only': True}
@@ -52,18 +60,16 @@ class UserSerializer(UserSerializer):
         #     ),
         # ]
 
-    def get_is_subscribed(self, obj):
-        if self.context.get('request').path_info == '/api/users/me/':
-            return False
-
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            try:
-                return obj.is_subscribed
-            except AttributeError:
-                return user.subscriber.filter(user_author=obj).exists()
-
-        return False
+    # def get_is_subscribed(self, obj):
+    #    if self.context.get('request').path_info == '/api/users/me/':
+    #         return False
+    #     user = self.context.get('request').user
+    #     if user.is_authenticated:
+    #         try:
+    #             return obj.is_subscribed
+    #         except AttributeError:
+    #             return user.subscriber.filter(user_author=obj).exists()
+    #     return False
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -391,8 +397,7 @@ class FollowSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'user',
-            'user_author',
-            'type_list'
+            'author',
         )
 
     def validate(self, data):
