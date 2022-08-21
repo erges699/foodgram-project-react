@@ -7,7 +7,7 @@ from .fields import Base64ImageField
 from recipes.models import (
     Ingredient, Tag, Recipe, IngredientsInRecipe, User
 )
-from users.models import (Follow, ShoppingCart)
+from users.models import Follow
 
 
 class UserCreateSerializer(UserCreateSerializer):
