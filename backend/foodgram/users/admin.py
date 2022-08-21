@@ -1,6 +1,9 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
-from .models import User
+User = get_user_model()
+
+admin.site.unregister(User)
 
 
 @admin.register(User)
@@ -9,13 +12,9 @@ class UserAdmin(admin.ModelAdmin):
         'pk',
         'username',
         'email',
-        'role',
-        'is_staff',
-        'confirmation_code',
     )
     list_display_links = ('username',)
-    list_filter = ('role',)
-    search_fields = ('username', 'email', 'role',)
+    list_filter = ('username',)
+    search_fields = ('username', 'email',)
     empty_value_display = '-пусто-'
     save_on_top = True
-    actions = ['Delete', ]

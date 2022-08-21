@@ -1,114 +1,139 @@
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (
-    filters, mixins, pagination, permissions, serializers, status, viewsets,
-)
+from django.db.models import Exists, OuterRef, Sum
+from django.http import FileResponse
+from rest_framework import (filters, viewsets, status, permissions, mixins)
 from rest_framework.decorators import action
-from rest_framework.response import Response
-# from rest_framework_simplejwt.tokens import RefreshToken
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .filters import IngredientFilter, RecipeFilter
-# from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, ReadOnly
+from .filters import RecipeFilter
 from .serializers import (
-    IngredientSerializer, TagSerializer, RecipeSerializer, 
-    RecipeFollowSerializer, ShoppingCartSerializer,
-    # SignUpSerializer, TokenSerializer, UserSerializer,
+    IngredientSerializer, TagSerializer, RecipeSerializer,
+    RecipeCreateUpdateSerializer, IngredientsInRecipe,
+    FavoriteShoppingSerializer
 )
+from .services import create_pdf
 from recipes.models import Ingredient, Tag, Recipe
-# from users.models import User
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    # permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.AllowAny, )
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    # filterset_class = IngredientFilter
-
-    # def get_queryset(self):
-    #    name = self.request.GET.get('name')
-    #    if name:
-    #        return Ingredient.objects.filter(name__istartswith=name)
-    #    return Ingredient.objects.all()
-
-
-'''
-    def get_title(self):
-        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-
-    def get_queryset(self):
-        return self.get_title().reviews.all()
-
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-            title=self.get_title()
-        )
-
-    def get_queryset(self):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        return review.comments.all()
-
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user,
-            review=get_object_or_404(
-                Review, pk=self.kwargs.get('review_id'),
-                title_id=self.kwargs.get('title_id')
-            )
-        )
-'''
 
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    # permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
+    filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
 
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            permission_classes = (permissions.AllowAny,)
+        elif self.action in ('update', 'destroy', 'partial_update'):
+            permission_classes = (permissions.IsOwnerOrReadOnly,)
+        else:
+            permission_classes = (permissions.IsAuthenticated,)
+        return [permission() for permission in permission_classes]
+
     def get_queryset(self):
-        is_favorited = self.request.GET.get("is_favorited")
-        is_in_shopping_cart = self.request.GET.get("is_in_shopping_cart")
-        if is_favorited:
-            return Recipe.objects.filter(favourite__user=self.request.user)
-        if is_in_shopping_cart:
-            return Recipe.objects.filter(buying__user=self.request.user)
-        return Recipe.objects.all().order_by('-id')
+        user = self.request.user
+        if user.is_authenticated:
+            favorite = user.favorite_recipes.filter(id=OuterRef('id'))
+            shopping_list = user.shopping_recipes.filter(id=OuterRef('id'))
+            return Recipe.objects.annotate(
+                is_favorited=Exists(favorite),
+                is_in_shopping_cart=Exists(shopping_list)
+            )
+        return Recipe.objects.all()
 
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return RecipeCreateUpdateSerializer
+        return RecipeSerializer
 
-class ShoppingCartView(viewsets.ModelViewSet):
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
-    @action(methods=['get', 'delete'], detail=False,
-            permission_classes=(permissions.IsAuthenticated,))
-    def get(self, request, recipe_id):
+    @action(detail=False,
+            methods=['GET', ], url_path='download_shopping_cart',)
+    def download_shopping_cart(self, request):
         user = request.user
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        serializer = ShoppingCartSerializer(
-            data={'user': user.id, 'recipe': recipe.id},
-            context={'request': request}
+        ingredient_list_user = (
+            IngredientsInRecipe.objects.
+            prefetch_related('ingredients', 'recipes').
+            filter(recipe__shoppings=user).
+            values('ingredients__id').
+            order_by('ingredients__id')
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(recipe=recipe, user=request.user)
-        serializer = RecipeFollowSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, recipe_id):
-        user = request.user
-        shopping_cart = get_object_or_404(
-            ShoppingCartSerializer,
-            user=user,
-            recipe__id=recipe_id
+        shopping_list = (
+            ingredient_list_user.annotate(amount=Sum('amount')).
+            values_list(
+                'ingredient__name', 'ingredient__measurement_unit', 'amount'
+            )
         )
-        shopping_cart.delete()
-        return Response(
-            f'Рецепт {shopping_cart.recipe} '
-            f'удален из корзины пользователя {user}, '
-            f'status=status.HTTP_204_NO_CONTENT'
+
+        file = create_pdf(shopping_list, 'Список покупок')
+
+        return FileResponse(
+            file,
+            as_attachment=True,
+            filename='shopping_list.pdf',
+            status=status.HTTP_200_OK
+        )
+
+
+class FavoriteAndShoppingCartDady(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+    mixins.DestroyModelMixin,
+):
+    permission_classes = (permissions.IsAuthenticated,)
+    model_class = Recipe
+    error = 'Указанный рецепт не был добавлен в список покупок.'
+
+
+class FavouriteViewSet(FavoriteAndShoppingCartDady):
+    def get_queryset(self):
+        user = self.request.user
+        return user.favorite_recipes
+
+    def get_serializer(self, id):
+        return FavoriteShoppingSerializer(
+            data={
+                'recipe': id,
+                'user': self.request.user.id,
+                'type_list': 'favorite',
+            },
+            context={
+                'request': self.request,
+            }
+        )
+
+
+class ShoppingCartViewSet(FavoriteAndShoppingCartDady):
+    def get_queryset(self):
+        user = self.request.user
+        return user.shopping_recipes
+
+    def get_serializer(self, id):
+        return FavoriteShoppingSerializer(
+            data={
+                'recipe': id,
+                'user': self.request.user.id,
+                'type_list': 'shopping',
+            },
+            context={
+                'request': self.request,
+            }
         )

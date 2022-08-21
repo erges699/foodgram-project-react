@@ -1,73 +1,88 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from django.db import models
 
-from .validators import username_validator
+from recipes.models import Recipe
 
-USER = 'user'
-ADMIN = 'admin'
-ROLE_CHOICES = (
-    (USER, 'Пользователь'),
-    (ADMIN, 'Администратор'),
-)
+User = get_user_model()
 
 
-class User(AbstractUser):
-    username = models.CharField(
-        'Имя пользователя',
-        max_length=150,
-        unique=True,
-        help_text=(
-            'Обязательное поле. 150 символов или меньше.'
-            'Только буквы, цифры и @/./+/-/_'),
-        validators=(username_validator,),
-        error_messages={
-             'unique': 'Пользователь с таким именем уже существует.',
-        },
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart',
+        verbose_name='Покупатель',
     )
-    email = models.EmailField(
-        'Адрес электронной почты',
-        max_length=254,
-        unique=True,
-        error_messages={
-            'unique': 'Пользователь с такой почтой уже существует.',
-        },
-    )
-    first_name = models.CharField('Имя', max_length=150, blank=True)
-    last_name = models.CharField('Фамилия', max_length=150, blank=True)
-    bio = models.TextField(
-        'О себе',
-        blank=True,
-        help_text='Расскажите немного о себе.'
-    )
-    role = models.CharField(
-        'Роль',
-        max_length=max(len(role[0]) for role in ROLE_CHOICES),
-        choices=ROLE_CHOICES,
-        default=USER,
-        help_text=(
-            'Роль пользователя на ресурсе.'
-            'User или Admin'
-            'Изменить роль может только Admin'
-        )
-    )
-    confirmation_code = models.CharField(
-        max_length=20,
+    recipes = models.ManyToManyField(
+        Recipe,
+        related_name='shopping_cart',
+        verbose_name='Покупки',
     )
 
     class Meta:
-        ordering = ('-username',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        ordering = ('user', )
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+
+    def __str__(self):
+        return f'{self.user}'
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        )
+    author = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='following',
+        )
+
+    class Meta:
+        ordering = ('-user',)
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=('username', 'email'),
-                name='unique_user'
-            )
+                fields=['user', 'author'],
+                name='unique_following'),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('user_author')),
+                name='no_self_following',),
         ]
 
     def __str__(self):
-        return self.username
+        return f'{self.user} подписан на {self.author}'
 
-    @property
-    def is_admin(self):
-        return self.role == ADMIN or self.is_staff
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь',
+        related_name='favorite',
+        )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+        related_name='favorite',
+        )
+
+    class Meta:
+        ordering = ('user', 'recipe',)
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique_favorite')
+        ]
+
+    def __str__(self):
+        return f'{self.user} ({self.recipe})'
