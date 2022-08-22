@@ -12,7 +12,6 @@ def create_pdf(data: list, title: str) -> TextIO:
     """
     Создает pdf-файл при помощи ReportLab.
     """
-
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     pdfmetrics.registerFont(
@@ -25,7 +24,6 @@ def create_pdf(data: list, title: str) -> TextIO:
     p.setFillColor(olive)
     p.drawString(55, y, f'{title}')
     y -= 30
-
     p.setFont('Open Sans', 14)
     p.setFillColor(navy)
     string_number = 1
@@ -36,9 +34,7 @@ def create_pdf(data: list, title: str) -> TextIO:
         )
         y -= 20
         string_number += 1
-
     p.showPage()
     p.save()
     buffer.seek(0)
-
-    return 
+    return

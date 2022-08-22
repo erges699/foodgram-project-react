@@ -1,20 +1,20 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
-from djoser.views import UserViewSet
-from rest_framework import status
+from djoser.serializers import SetPasswordSerializer
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework import status, permissions
-from rest_framework.generics import ListAPIView
+from rest_framework import status, permissions, viewsets, mixins
 # from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 
 from .models import Follow
 from api.pagination import CustomPageNumberPagination
-from api.serializers import (FollowSerializer, ShowFollowsSerializer,
-                             UserSerializer, UserCreateSerializer, FollowerSerializer)
+from api.serializers import (FollowSerializer, FollowCreateDeleteSerializer,
+                             UserSerializer, UserCreateSerializer)
 from recipes.models import IngredientsInRecipe
 
 User = get_user_model()
@@ -48,24 +48,19 @@ def download_shopping_cart(request):
     return response
 
 
-class UsersViewSet(UserViewSet):
-    queryset = User.objects.all()
+class UsersViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
     serializer_class = UserSerializer
-    # permission_classes = (permissions.IsAuthenticated,)    
+    queryset = User.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
     pagination_class = CustomPageNumberPagination
-    
-    def get_serializer_class(self):
-        if self.action in ('create', 'partial_update'):
-            return UserCreateSerializer
-        return UserSerializer
 
     def get_user(self):
         return self.request.user
-        
-    def get_permissions(self):
-        if self.action in ('create', 'list', 'reset_password', ):
-            self.permission_classes = (permissions.AllowAny,)
-        return super().get_permissions()
 
     def get_queryset(self):
         queryset = self.queryset
@@ -76,20 +71,35 @@ class UsersViewSet(UserViewSet):
             )
         return queryset
 
-    def me(self, request):
-        """
-        Метод для обработки запроса GET на получение данных профиля текущего
-        пользователя.
-        URL - /users/me/.
-        """
+    def get_permissions(self):
+        if self.action in ('create', 'list', 'reset_password', ):
+            self.permission_classes = (permissions.AllowAny,)
+        return super().get_permissions()
 
-        user = request.user
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return UserCreateSerializer
+        elif self.action == 'set_password':
+            return SetPasswordSerializer
+        elif self.action == 'subscriptions':
+            return FollowSerializer
+        elif self.action == 'subscribe':
+            return FollowCreateDeleteSerializer
+        return self.serializer_class
+
+    def perform_create(self, serializer):
+        DjoserUserViewSet.perform_create(self, serializer)
+
+    @action(['get'], detail=False)
+    def me(self, request, *args, **kwargs):
+        user = self.get_user()
         serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )        
+    @action(['post'], detail=False)
+    def set_password(self, request, *args, **kwargs):
+        return DjoserUserViewSet.set_password(self, request, *args, **kwargs)
+
     @action(['get'], detail=False)
     def subscriptions(self, request, *args, **kwargs):
         context = {'request': request}
@@ -115,6 +125,7 @@ class UsersViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        # user, author = (serializer.validated_data.values())
         queryset = self.get_queryset().get(id=pk)
         instance_serializer = FollowSerializer(queryset, context=context)
         return Response(instance_serializer.data)

@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, Sum
+from django.db.models import Sum
 from django.http import FileResponse
 from rest_framework import (filters, permissions, status, viewsets,)
 from rest_framework.response import Response
@@ -11,11 +11,12 @@ from .pagination import CustomPageNumberPagination
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
     RecipeCreateUpdateSerializer, FavoriteSerializer,
-    IngredientsInRecipe, ShowFollowsSerializer
+    IngredientsInRecipe
 )
 from .utils import create_pdf
 from recipes.models import Ingredient, Tag, Recipe
-from users.models import Favorite, Follow, ShoppingCart
+from users.models import Favorite, ShoppingCart
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
@@ -41,17 +42,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = CustomPageNumberPagination
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_anonymous:
-            return self.queryset
-        queryset = self.queryset.annotate(
-            is_favorited=Exists(
-                user.favorite_set.filter(recipes=OuterRef('pk'))),
-            is_in_shopping_cart=Exists(
-                user.cart_set.filter(recipes=OuterRef('pk'))),
-        )
-        return queryset
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     if user.is_anonymous:
+    #         return self.queryset
+    #     queryset = self.queryset.annotate(
+    #         is_favorited=Exists(
+    #             user.favorite_set.filter(recipes=OuterRef('pk'))),
+    #         is_in_shopping_cart=Exists(
+    #             user.cart_set.filter(recipes=OuterRef('pk'))),
+    #    )
+    #     return queryset
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
@@ -121,7 +122,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        instance, _ = ShoppingCart.objects.get_or_create(user=self.request.user)
+        instance, _ = ShoppingCart.objects.get_or_create(
+            user=self.request.user
+        )
 
         if request.method == 'DELETE':
             if not instance.recipes.filter(pk=pk).exists():

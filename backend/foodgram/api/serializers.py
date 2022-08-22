@@ -1,5 +1,4 @@
-from djoser.serializers import UserCreateSerializer, UserSerializer
-from django.shortcuts import get_object_or_404
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -10,8 +9,8 @@ from recipes.models import (
 from users.models import (Follow, ShoppingCart, Favorite)
 
 
-class UserCreateSerializer(UserCreateSerializer):
-    """Done"""
+class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -21,11 +20,19 @@ class UserCreateSerializer(UserCreateSerializer):
             'username',
             'first_name',
             'last_name',
+            'is_subscribed',
         )
 
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
 
-class UserSerializer(UserSerializer):
-    """Done"""
+        return user.follower.filter(author=obj).exists()
+
+
+class UserCreateSerializer(UserCreateSerializer):
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = User
@@ -36,34 +43,7 @@ class UserSerializer(UserSerializer):
             'first_name',
             'last_name',
             'password',
-            'is_subscribed',
         )
-        read_only_fields = ('is_subscribed', )
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=("username", "email"),
-                message=(
-                    "Задано не уникальное сочетание полей email " "и username."
-                ),
-            ),
-        ]
-
-    def get_is_subscribed(self, obj):
-        if self.context.get('request').path_info == '/api/users/me/':
-            return False
-
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            try:
-                return obj.is_subscribed
-            except AttributeError:
-                return user.subscriber.filter(user_author=obj).exists()
-
-        return False
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -121,10 +101,10 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientReadSerializer(
         many=True,
-        source='recipe_ingredient')
+        source='ingredients_recipes')
     tags = TagSerializer(many=True)
-    is_favorited = serializers.BooleanField(default=False)
-    is_in_shopping_cart = serializers.BooleanField(default=False)
+    # is_favorited = serializers.BooleanField(default=False)
+    # is_in_shopping_cart = serializers.BooleanField(default=False)
     author = UserSerializer(
         read_only=True,
         default=serializers.CurrentUserDefault(),
@@ -137,38 +117,14 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
-            'is_favorited',
-            'is_in_shopping_cart',
+            # 'is_favorited',
+            # 'is_in_shopping_cart',
             'name',
             'image',
             'text',
             'cooking_time',
         )
         read_only_fields = ('author',)
-
-    def get_is_favorited(self, obj):
-        """
-        Функция проверки добавления рецепта в избранное.
-        """
-
-        if self.context.get('request').method == 'POST':
-            return False
-
-        if self.context.get('request').user.is_authenticated:
-            return obj.is_favorited
-        return False
-
-    def get_is_in_shopping_cart(self, obj):
-        """
-        Функция проверки добавления рецепта рецепта в список покупок.
-        """
-
-        if self.context.get('request').method == 'POST':
-            return False
-
-        if self.context.get('request').user.is_authenticated:
-            return obj.is_in_shopping_cart
-        return False
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
@@ -186,7 +142,7 @@ class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientWriteSerializer(
         many=True,
-        source='recipe_ingredient')
+        source='ingredients_recipes')
     tags = serializers.SlugRelatedField(
         many=True,
         slug_field='id',
@@ -258,7 +214,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def create(self, validated_data):
-        ingredients_data = validated_data.pop('recipe_ingredient')
+        ingredients_data = validated_data.pop('ingredients_recipes')
         instance = super().create(validated_data)
         return self.ingredients_tags_add(instance, ingredients_data)
 
@@ -274,7 +230,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         self.ingredients_tags_add(
-            instance, validated_data['recipe_ingredient']
+            instance, validated_data['ingredients_recipes']
         )
         instance.save()
         return instance
@@ -328,66 +284,30 @@ class FavoriteSerializer(serializers.ModelSerializer):
             'recipe',
             'user',
         )
-        
 
-class FavoriteShoppingSerializer(serializers.ModelSerializer):
-    """NOT"""
 
-    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
-    user = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault(),
-    )
+class FollowSerializer(UserSerializer):
+    recipes_count = serializers.IntegerField()
+    recipes = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Favorite
-        fields = (
-            'recipe',
-            'user',
+    def get_recipes(self, obj):
+        recipes_limit = self.context.get(
+            'request').query_params.get('recipes_limit')
+        if recipes_limit is not None:
+            try:
+                recipes_limit = int(recipes_limit)
+                if recipes_limit < 0:
+                    raise ValueError
+            except ValueError:
+                message = 'Параметр recipes_limit должен быть числом больше 0'
+                raise serializers.ValidationError(message)
+
+        serializer = RecipeMinifiedSerializer(
+            obj.recipe.all()[:recipes_limit],
+            many=True,
         )
 
-    def validate(self, data):
-        recipe = get_object_or_404(Recipe, id=data['recipe'].id)
-
-        if data['type_list'] == 'favorite':
-            error_text = 'список избранного'
-            condition = User.objects.select_related('to_shopping_cart').filter(
-                username=data['user'].username,
-                favorite_recipes=recipe
-            ).exists()
-        if data['type_list'] == 'shopping':
-            error_text = 'список покупок'
-            condition = User.objects.select_related('shopping_recipes').filter(
-                username=data['user'].username,
-                shopping_recipes=recipe
-            ).exists()
-
-        if condition:
-            raise serializers.ValidationError(
-                    f"Рецепт {recipe} уже добавлен в {error_text}."
-            )
-
-        return data
-
-    def create(self, validated_data):
-        user = validated_data['user']
-        recipe = validated_data['recipe']
-
-        if validated_data['type_list'] == 'favorite':
-            user.favorite_recipes.add(recipe)
-        if validated_data['type_list'] == 'shopping':
-            user.shopping_recipes.add(recipe)
-
-        return recipe
-
-    def to_representation(self, instance):
-        return RecipeMinifiedSerializer(instance).data
-
-
-class ShowFollowsSerializer(UserSerializer):
-    """NOT"""
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+        return serializer.data
 
     class Meta:
         model = User
@@ -399,64 +319,18 @@ class ShowFollowsSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
             'recipes',
-            'recipes_count'
+            'recipes_count',
         )
 
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        limit = request.query_params.get('recipes_limit')
-        recipes = obj.recipes.only('id', 'name', 'image', 'cooking_time')
-        if limit:
-            recipes = recipes[:int(limit)]
-        return RecipeMinifiedSerializer(recipes, many=True).data
 
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    """NOT"""
-    queryset = User.objects.all()
-    author = serializers.PrimaryKeyRelatedField(queryset=queryset)
-    user = serializers.PrimaryKeyRelatedField(queryset=queryset)
+class FollowCreateDeleteSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = User
-        fields = (
-            'user',
-            'user_author',
-            'type_list'
-        )
-
-    def validate(self, data):
-        user = data['user']
-        author = data['author']
-        if user == author:
-            raise serializers.ValidationError(
-                'Нельзя подписываться на самого себя.'
+        model = Follow
+        fields = '__all__'
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=['user', 'author']
             )
-        if Follow.objects.filter(user=user, user_author=author).exists():
-            raise serializers.ValidationError(
-                f'Вы уже подписаны на пользователя {author}.'
-            )
-        return data
-
-    def create(self, validated_data):
-        user = validated_data['user']
-        author = validated_data['author']
-        Follow.objects.create(
-            user=user,
-            author=author
-        )
-        return user
-
-    def to_representation(self, instance):
-        data = instance.subscribing.annotate(
-            is_subscribed=User.objects.all()).last().exists()
-
-        return ShowFollowsSerializer(
-            data,
-            context={
-                'request': self.context.get('request'),
-            }
-        ).data
+        ]
