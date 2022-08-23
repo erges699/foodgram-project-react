@@ -15,11 +15,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     '*',
+    'backend',
     '127.0.0.1',
     'localhost',
 ]
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,6 +28,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
     'django_filters',
     'api',
     'recipes',
@@ -66,10 +67,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -88,8 +85,7 @@ DATABASES = {
 #    }
 # }
 
-# Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -111,10 +107,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -125,10 +117,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
@@ -138,34 +126,28 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-    #    'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+
     'DEFAULT_PAGINATION_CLASS':
-        'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 5,
+        'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
-# SIMPLE_JWT = {
-#      'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-#      'AUTH_HEADER_TYPES': ('Bearer',),
-#      'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-#      'USER_ID_FIELD': 'id',
-#      'USER_ID_CLAIM': 'id',
-# }
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    # 'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
+}
 
-# email settings
 
-PRODUCTION_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-TEST_EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-
-EMAIL_BACKEND = TEST_EMAIL_BACKEND if DEBUG else TEST_EMAIL_BACKEND
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
-
-EMAIL_HOST = 'smtp.yandex.ru'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default='example@example.ru')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default='0123456789')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DJOSER = {
+    # 'LOGIN_FIELD': 'email',
+    "CREATE_SESSION_ON_LOGIN": True,
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSerializer',
+        'user_create': 'api.serializers.UserCreateSerializer',
+        'current_user': 'api.serializers.UserSerializer',
+    },
+}
