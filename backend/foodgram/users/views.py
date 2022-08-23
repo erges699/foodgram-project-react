@@ -74,6 +74,8 @@ class UsersViewSet(
     def get_permissions(self):
         if self.action in ('create', 'list', 'reset_password', ):
             self.permission_classes = (permissions.AllowAny,)
+        else:
+            permission_classes = (IsAuthenticated,)
         return super().get_permissions()
 
     def get_serializer_class(self):
