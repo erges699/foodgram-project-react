@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Aggregate, Count, Sum, Exists, OuterRef, Subquery
 from django.http import FileResponse
 from rest_framework import (filters, permissions, status, viewsets,)
 from rest_framework.response import Response
@@ -11,7 +11,7 @@ from .pagination import CustomPageNumberPagination
 from .serializers import (
     IngredientSerializer, TagSerializer, RecipeSerializer,
     RecipeCreateUpdateSerializer, FavoriteSerializer,
-    IngredientsInRecipe
+    IngredientsInRecipe, ShoppingCartSerializer
 )
 from .utils import create_pdf
 from recipes.models import Ingredient, Tag, Recipe
@@ -42,17 +42,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = CustomPageNumberPagination
 
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.is_anonymous:
-    #         return self.queryset
-    #     queryset = self.queryset.annotate(
-    #         is_favorited=Exists(
-    #             user.favorite_set.filter(recipes=OuterRef('pk'))),
-    #         is_in_shopping_cart=Exists(
-    #             user.cart_set.filter(recipes=OuterRef('pk'))),
-    #    )
-    #     return queryset
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_anonymous:
+            return self.queryset
+        queryset = self.queryset.annotate(
+            is_favorited=Exists(
+                user.favorite.filter(recipes=OuterRef('pk'))),
+            is_in_shopping_cart=Exists(
+                user.shoppingcart_set.filter(recipes=OuterRef('pk'))),
+       )
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
@@ -69,7 +69,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredient_list_user = (
             IngredientsInRecipe.objects.
             prefetch_related('ingredients', 'recipes').
-            filter(recipe__shoppings=user).
+            filter(recipes__author=user).
             values('ingredients__id').
             order_by('ingredients__id')
         )
@@ -77,7 +77,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         shopping_list = (
             ingredient_list_user.annotate(amount=Sum('amount')).
             values_list(
-                'ingredient__name', 'ingredient__measurement_unit', 'amount'
+                'ingredients__name', 'ingredients__measurement_unit', 'amount'
             )
         )
 
@@ -116,7 +116,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk=None):
-        serializer = ShoppingCart(
+        serializer = ShoppingCartSerializer(
             data={'recipes': pk},
             context={'request': request}
         )

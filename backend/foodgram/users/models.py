@@ -12,12 +12,10 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='to_shopping_cart',
         verbose_name='Покупатель',
     )
     recipes = models.ManyToManyField(
         Recipe,
-        related_name='in_shopping_cart',
         verbose_name='Покупки',
     )
 
@@ -62,19 +60,14 @@ class Favorite(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='favorite')
-    recipe = models.ForeignKey(
+    recipes = models.ManyToManyField(
         Recipe,
-        on_delete=models.CASCADE,
-        related_name='favorited')
+        related_name='favorite')
 
     class Meta:
-        ordering = ('user', 'recipe',)
+        ordering = ('user', )
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'], name='unique_favorite')
-        ]
 
     def __str__(self):
         return f'{self.user} ({self.recipe})'

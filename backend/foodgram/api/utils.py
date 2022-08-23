@@ -1,4 +1,5 @@
 import io
+from django.conf import settings
 from typing import TextIO
 
 from reportlab.lib.colors import navy, olive
@@ -15,9 +16,9 @@ def create_pdf(data: list, title: str) -> TextIO:
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     pdfmetrics.registerFont(
-        TTFont('Open Sans Bold', './static/open-sans-bold.ttf')
+        TTFont('Open Sans Bold', f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans-bold.ttf')
     )
-    pdfmetrics.registerFont(TTFont('Open Sans', './static/open-sans.ttf'))
+    pdfmetrics.registerFont(TTFont('Open Sans', f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans.ttf'))
 
     p.setFont('Open Sans Bold', 20)
     y = 810
@@ -37,4 +38,4 @@ def create_pdf(data: list, title: str) -> TextIO:
     p.showPage()
     p.save()
     buffer.seek(0)
-    return
+    return buffer

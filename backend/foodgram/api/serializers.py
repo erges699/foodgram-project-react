@@ -103,8 +103,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True,
         source='ingredients_recipes')
     tags = TagSerializer(many=True)
-    # is_favorited = serializers.BooleanField(default=False)
-    # is_in_shopping_cart = serializers.BooleanField(default=False)
+    is_favorited = serializers.BooleanField(default=False)
+    is_in_shopping_cart = serializers.BooleanField(default=False)
     author = UserSerializer(
         read_only=True,
         default=serializers.CurrentUserDefault(),
@@ -117,8 +117,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
-            # 'is_favorited',
-            # 'is_in_shopping_cart',
+            'is_favorited',
+            'is_in_shopping_cart',
             'name',
             'image',
             'text',
@@ -242,7 +242,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return result
 
 
-class ShoppingCart(serializers.ModelSerializer):
+class ShoppingCartSerializer(serializers.ModelSerializer):
     """TRY"""
     user = serializers.PrimaryKeyRelatedField(
         read_only=True,
@@ -265,7 +265,7 @@ class ShoppingCart(serializers.ModelSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """TRY"""
-    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
+    recipes = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
     user = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault(),
@@ -280,13 +280,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = (
-            'recipe',
-            'user',
-        )
+        fields = ('user', 'recipes')
 
 
 class FollowSerializer(UserSerializer):
+    """TRY"""
     recipes_count = serializers.IntegerField()
     recipes = serializers.SerializerMethodField()
 
@@ -306,7 +304,6 @@ class FollowSerializer(UserSerializer):
             obj.recipe.all()[:recipes_limit],
             many=True,
         )
-
         return serializer.data
 
     class Meta:
@@ -319,12 +316,13 @@ class FollowSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
             'recipes',
-            'recipes_count',
+            'recipes_count'
         )
 
 
 class FollowCreateDeleteSerializer(serializers.ModelSerializer):
-
+    """TRY"""
+    
     class Meta:
         model = Follow
         fields = '__all__'
