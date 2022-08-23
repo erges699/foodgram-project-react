@@ -301,7 +301,7 @@ class FollowSerializer(UserSerializer):
                 raise serializers.ValidationError(message)
 
         serializer = RecipeMinifiedSerializer(
-            obj.recipe.all()[:recipes_limit],
+            obj.recipes.all()[:recipes_limit],
             many=True,
         )
         return serializer.data
@@ -325,10 +325,4 @@ class FollowCreateDeleteSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Follow
-        fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=['user', 'author']
-            )
-        ]
+        fields = ('id', 'user', 'author')

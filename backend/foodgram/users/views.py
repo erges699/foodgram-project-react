@@ -67,7 +67,7 @@ class UsersViewSet(
         if self.action in ('subscriptions', 'subscribe'):
             queryset = queryset.filter(
                 following__user=self.get_user()).annotate(
-                recipes_count=Count('recipe'),
+                recipes_count=Count('recipes'),
             )
         return queryset
 
@@ -118,7 +118,7 @@ class UsersViewSet(
         context = {'request': request}
         data = {
             'user': self.get_user().pk,
-            'author': (pk,),
+            'author': (pk)
         }
         serializer = self.get_serializer(data=data)
         if request.method == 'DELETE':
