@@ -10,18 +10,16 @@ from reportlab.pdfgen import canvas
 
 
 def create_pdf(data: list, title: str) -> TextIO:
-    """
-    Создает pdf-файл при помощи ReportLab.
-    """
     buffer = io.BytesIO()
     page = canvas.Canvas(buffer, pagesize=A4)
     pdfmetrics.registerFont(
-        TTFont('Open Sans Bold', f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans-bold.ttf')
+        TTFont('Open Sans Bold',
+               f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans-bold.ttf')
     )
-    pdfmetrics.registerFont(TTFont('Open Sans',
-        f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans.ttf')
+    pdfmetrics.registerFont(
+        TTFont('Open Sans',
+               f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans.ttf')
     )
-
     page.setFont('Open Sans Bold', 20)
     axis_y = 810
     page.setFillColor(olive)
@@ -33,7 +31,8 @@ def create_pdf(data: list, title: str) -> TextIO:
     for count in data:
         page.drawString(
             15, axis_y,
-            f'{string_number}. {count[0].capitalize()} ({count[1]}) - {count[2]}'
+            f'{string_number}. {count[0].capitalize()} '
+            f'({count[1]}) - {count[2]}'
         )
         axis_y -= 20
         string_number += 1

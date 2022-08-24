@@ -15,7 +15,7 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           IngredientsInRecipe, RecipeCreateUpdateSerializer,
                           RecipeSerializer, ShoppingCartSerializer,
                           TagSerializer)
-from .servises import create_pdf
+from .services import create_pdf
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):

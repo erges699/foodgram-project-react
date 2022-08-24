@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
-from djoser.views import UserViewSet
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from api.pagination import CustomPageNumberPagination
 from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
                              UserCreateSerializer, UserSerializer)
-
 from .models import Follow
 
 User = get_user_model()
@@ -58,7 +57,7 @@ class CustomUsersViewSet(
         return self.serializer_class
 
     def perform_create(self, serializer):
-        UserViewSet.perform_create(self, serializer)
+        DjoserUserViewSet.perform_create(self, serializer)
 
     @action(['get'], detail=False)
     def me(self, request, *args, **kwargs):
@@ -68,7 +67,7 @@ class CustomUsersViewSet(
 
     @action(['post'], detail=False)
     def set_password(self, request, *args, **kwargs):
-        return UserViewSet.set_password(self, request, *args, **kwargs)
+        return DjoserUserViewSet.set_password(self, request, *args, **kwargs)
 
     @action(['get'], detail=False)
     def subscriptions(self, request, *args, **kwargs):

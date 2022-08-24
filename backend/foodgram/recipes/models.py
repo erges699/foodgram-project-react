@@ -3,17 +3,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
 
-CHOICES = (
-    ('#FFFFFF', 'Белый'),
-    ('#000000', 'Чёрный'),
-    ('#0000FF', 'Синий'),
-    ('#00FF00', 'Лайм'),
-    ('#FF0000', 'Красный'),
-    ('#FFFF00', 'Жёлтый'),
-    ('#FFC0CB', 'Розовый'),
-    ('#D2691E', 'Шоколадный'),
-)
-
 User = get_user_model()
 
 
@@ -26,7 +15,6 @@ class Tag(models.Model):
         max_length=7,
         default='#FFFFFF',
         verbose_name='Цвет в HEX',
-        choices=CHOICES,
     )
     slug = models.SlugField(
         max_length=200,
