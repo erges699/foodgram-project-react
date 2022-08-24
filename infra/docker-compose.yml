@@ -19,7 +19,7 @@ services:
       - .env
 
   backend:
-    build: ../backend
+    build: ../backend/foodgram
     restart: always
     ports:
       - "8000:8000" 

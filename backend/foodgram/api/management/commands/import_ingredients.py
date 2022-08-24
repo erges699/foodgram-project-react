@@ -23,13 +23,13 @@ class Command(BaseCommand):
         print('Загружаю данные')
         for row in DictReader(
                 open(
-                './data/ingredients.csv',
+                './static/data/ingredients.csv',
                 'r',
-                encoding="utf8"            
+                encoding="utf8"
                 ),
                 fieldnames=("name", "unit"),
                 delimiter=','
-            ):
+             ):
             ingredient = Ingredient(
                 name=row["name"],
                 measurement_unit=row["unit"]
