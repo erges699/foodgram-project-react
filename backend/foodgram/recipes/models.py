@@ -112,13 +112,13 @@ class Recipe(models.Model):
 
 
 class IngredientsInRecipe(models.Model):
-    recipes = models.ForeignKey(
+    recipe = models.ForeignKey(
         Recipe,
         related_name='ingredient_recipe',
         verbose_name='Рецепт',
         on_delete=models.CASCADE
     )
-    ingredients = models.ForeignKey(
+    ingredient = models.ForeignKey(
         Ingredient,
         related_name='ingredient_recipe',
         verbose_name='Ингредиент',
@@ -135,7 +135,7 @@ class IngredientsInRecipe(models.Model):
         verbose_name_plural = 'Ингредиенты в рецепте'
         constraints = (
             models.UniqueConstraint(
-                fields=('recipes', 'ingredients'),
+                fields=('recipe', 'ingredient'),
                 name='unique_amount_of_ingredient',
             ),
         )

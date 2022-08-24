@@ -1,53 +1,22 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Sum
-from django.http import HttpResponse
+from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
-from djoser.views import UserViewSet as DjoserUserViewSet
+from djoser.views import UserViewSet
 from rest_framework import mixins, permissions, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.pagination import CustomPageNumberPagination
 from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
                              UserCreateSerializer, UserSerializer)
-from recipes.models import IngredientsInRecipe
 
 from .models import Follow
 
 User = get_user_model()
 
 
-def shopping_cart_file(user):
-    ingredients = IngredientsInRecipe.objects.filter(
-        recipe__in_shopping_cart__user=user).values(
-        'ingredient__name',
-        'ingredient__unit').annotate(total=Sum('amount'))
-
-    shopping_list = 'список:\n'
-    for number, ingredient in enumerate(ingredients, start=1):
-        shopping_list += (
-            f'{number} '
-            f'{ingredient["ingredient__name"]} - '
-            f'{ingredient["total"]} '
-            f'{ingredient["ingredient__unit"]}\n')
-    return shopping_list
-
-
-@api_view(['GET', ])
-@permission_classes([permissions.AllowAny])
-def download_shopping_cart(request):
-    user = request.user
-    txt_file_output = shopping_cart_file(user)
-    response = HttpResponse(txt_file_output, 'Content-Type: text/plain')
-    response['Content-Disposition'] = (
-        'attachment;' 'filename="Список_покупок.txt"'
-    )
-    return response
-
-
-class UsersViewSet(
+class CustomUsersViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
@@ -74,7 +43,7 @@ class UsersViewSet(
         if self.action in ('create', 'list', 'reset_password', ):
             self.permission_classes = (permissions.AllowAny,)
         else:
-            permission_classes = (permissions.IsAuthenticated,)
+            self.permission_classes = (permissions.IsAuthenticated,)
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -89,7 +58,7 @@ class UsersViewSet(
         return self.serializer_class
 
     def perform_create(self, serializer):
-        DjoserUserViewSet.perform_create(self, serializer)
+        UserViewSet.perform_create(self, serializer)
 
     @action(['get'], detail=False)
     def me(self, request, *args, **kwargs):
@@ -99,7 +68,7 @@ class UsersViewSet(
 
     @action(['post'], detail=False)
     def set_password(self, request, *args, **kwargs):
-        return DjoserUserViewSet.set_password(self, request, *args, **kwargs)
+        return UserViewSet.set_password(self, request, *args, **kwargs)
 
     @action(['get'], detail=False)
     def subscriptions(self, request, *args, **kwargs):

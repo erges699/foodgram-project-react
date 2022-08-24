@@ -1,4 +1,4 @@
-from django.db.models import Aggregate, Count, Exists, OuterRef, Subquery, Sum
+from django.db.models import Exists, OuterRef, Sum
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
@@ -69,15 +69,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredient_list_user = (
             IngredientsInRecipe.objects.
             prefetch_related('ingredients', 'recipes').
-            filter(recipes__author=user).
-            values('ingredients__id').
-            order_by('ingredients__id')
+            filter(recipe__author=user).
+            values('ingredient__id').
+            order_by('ingredient__id')
         )
 
         shopping_list = (
             ingredient_list_user.annotate(amount=Sum('amount')).
             values_list(
-                'ingredients__name', 'ingredients__measurement_unit', 'amount'
+                'ingredient__name', 'ingredient__measurement_unit', 'amount'
             )
         )
 
