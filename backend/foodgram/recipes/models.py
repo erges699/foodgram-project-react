@@ -1,5 +1,5 @@
-from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
 
@@ -114,13 +114,13 @@ class Recipe(models.Model):
 class IngredientsInRecipe(models.Model):
     recipes = models.ForeignKey(
         Recipe,
-        related_name='ingredients_recipes',
+        related_name='ingredient_recipe',
         verbose_name='Рецепт',
         on_delete=models.CASCADE
     )
     ingredients = models.ForeignKey(
         Ingredient,
-        related_name='ingredients_recipes',
+        related_name='ingredient_recipe',
         verbose_name='Ингредиент',
         on_delete=models.CASCADE
     )

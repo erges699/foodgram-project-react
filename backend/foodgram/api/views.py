@@ -1,21 +1,21 @@
-from django.db.models import Aggregate, Count, Sum, Exists, OuterRef, Subquery
+from django.db.models import Aggregate, Count, Exists, OuterRef, Subquery, Sum
 from django.http import FileResponse
-from rest_framework import (filters, permissions, status, viewsets,)
-from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.exceptions import ValidationError
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+
+from recipes.models import Ingredient, Recipe, Tag
+from users.models import Favorite, ShoppingCart
 
 from .filters import RecipeFilter
 from .pagination import CustomPageNumberPagination
-from .serializers import (
-    IngredientSerializer, TagSerializer, RecipeSerializer,
-    RecipeCreateUpdateSerializer, FavoriteSerializer,
-    IngredientsInRecipe, ShoppingCartSerializer
-)
-from .utils import create_pdf
-from recipes.models import Ingredient, Tag, Recipe
-from users.models import Favorite, ShoppingCart
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          IngredientsInRecipe, RecipeCreateUpdateSerializer,
+                          RecipeSerializer, ShoppingCartSerializer,
+                          TagSerializer)
+from .servises import create_pdf
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -51,7 +51,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user.favorite.filter(recipes=OuterRef('pk'))),
             is_in_shopping_cart=Exists(
                 user.shoppingcart_set.filter(recipes=OuterRef('pk'))),
-       )
+        )
         return queryset
 
     def get_serializer_class(self):

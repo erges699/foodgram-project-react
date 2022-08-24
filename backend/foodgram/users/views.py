@@ -1,21 +1,20 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum
 from djoser.serializers import SetPasswordSerializer
 from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework import status, permissions, viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.pagination import CustomPageNumberPagination
+from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
+                             UserCreateSerializer, UserSerializer)
+from recipes.models import IngredientsInRecipe
 
 from .models import Follow
-from api.pagination import CustomPageNumberPagination
-from api.serializers import (FollowSerializer, FollowCreateDeleteSerializer,
-                             UserSerializer, UserCreateSerializer)
-from recipes.models import IngredientsInRecipe
 
 User = get_user_model()
 

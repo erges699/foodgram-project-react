@@ -1,7 +1,7 @@
 import io
-from django.conf import settings
 from typing import TextIO
 
+from django.conf import settings
 from reportlab.lib.colors import navy, olive
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
@@ -14,28 +14,30 @@ def create_pdf(data: list, title: str) -> TextIO:
     Создает pdf-файл при помощи ReportLab.
     """
     buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
+    page = canvas.Canvas(buffer, pagesize=A4)
     pdfmetrics.registerFont(
         TTFont('Open Sans Bold', f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans-bold.ttf')
     )
-    pdfmetrics.registerFont(TTFont('Open Sans', f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans.ttf'))
+    pdfmetrics.registerFont(TTFont('Open Sans',
+        f'{settings.BASE_DIR}{settings.STATIC_URL}open-sans.ttf')
+    )
 
-    p.setFont('Open Sans Bold', 20)
-    y = 810
-    p.setFillColor(olive)
-    p.drawString(55, y, f'{title}')
-    y -= 30
-    p.setFont('Open Sans', 14)
-    p.setFillColor(navy)
+    page.setFont('Open Sans Bold', 20)
+    axis_y = 810
+    page.setFillColor(olive)
+    page.drawString(55, axis_y, f'{title}')
+    axis_y -= 30
+    page.setFont('Open Sans', 14)
+    page.setFillColor(navy)
     string_number = 1
-    for i in data:
-        p.drawString(
-            15, y,
-            f'{string_number}. {i[0].capitalize()} ({i[1]}) - {i[2]}'
+    for count in data:
+        page.drawString(
+            15, axis_y,
+            f'{string_number}. {count[0].capitalize()} ({count[1]}) - {count[2]}'
         )
-        y -= 20
+        axis_y -= 20
         string_number += 1
-    p.showPage()
-    p.save()
+    page.showPage()
+    page.save()
     buffer.seek(0)
     return buffer

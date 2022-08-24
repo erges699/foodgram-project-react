@@ -1,8 +1,8 @@
 import os
-from dotenv import load_dotenv
 from datetime import timedelta
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from dotenv import load_dotenv
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 dotenv_path = os.path.join(BASE_DIR, '.env')
@@ -10,7 +10,6 @@ load_dotenv(dotenv_path)
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='0123456789')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = [
@@ -135,12 +134,10 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    # 'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
 }
 
 
 DJOSER = {
-    # 'LOGIN_FIELD': 'email',
     "CREATE_SESSION_ON_LOGIN": True,
     'SERIALIZERS': {
         'user': 'api.serializers.UserSerializer',
