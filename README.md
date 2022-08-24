@@ -1,6 +1,6 @@
 # praktikum_new_diplom
 # api_yamdb
-![CI и CD проекта api_yamdb](https://github.com/erges699/yamdb_final/actions/workflows/yamdb_workflow.yml/badge.svg)
+![FOODGRAM, Продуктовый помощник](https://github.com/erges699/foodgram-project-react/actions/workflows/foodgram-project-react.yml/badge.svg)
 
 <h1 align="center">Привет! </h1>
 <h3 align="center">Я студент факультета Бэкенд. Когорта №9+ Яндекс.Практикум</h3>
