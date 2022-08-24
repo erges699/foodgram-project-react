@@ -1,5 +1,4 @@
-# praktikum_new_diplom
-# api_yamdb
+# praktikum_foodgram-project-react
 ![FOODGRAM, Продуктовый помощник](https://github.com/erges699/foodgram-project-react/actions/workflows/foodgram-project-react.yml/badge.svg)
 
 <h1 align="center">Привет! </h1>
