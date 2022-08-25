@@ -90,15 +90,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=['post', 'delete'])
-    def favorite(self, request, pk=None):
-        serializer = FavoriteSerializer(
+    def favorite_shopping_cart(
+        self, user_model, user_model_serializer, request, pk
+    ):
+        serializer = user_model_serializer(
             data={'recipes': pk},
             context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
 
-        instance, _ = Favorite.objects.get_or_create(user=self.request.user)
+        instance, _ = user_model.objects.get_or_create(user=self.request.user)
 
         if request.method == 'DELETE':
             if not instance.recipes.filter(pk=pk).exists():
@@ -115,27 +116,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post', 'delete'])
+    def favorite(self, request, pk=None):
+        return self.favorite_shopping_cart(
+            FavoriteSerializer,
+            Favorite,
+            request,
+            pk=None
+        )
+
+    @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk=None):
-        serializer = ShoppingCartSerializer(
-            data={'recipes': pk},
-            context={'request': request}
+        return self.favorite_shopping_cart(
+            ShoppingCartSerializer,
+            ShoppingCart,
+            request,
+            pk=None
         )
-        serializer.is_valid(raise_exception=True)
-
-        instance, _ = ShoppingCart.objects.get_or_create(
-            user=self.request.user
-        )
-
-        if request.method == 'DELETE':
-            if not instance.recipes.filter(pk=pk).exists():
-                message = {'errors': 'Такого рецепта нет в списке покупок'}
-                raise ValidationError(message)
-            instance.recipes.remove(pk)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        if instance.recipes.filter(pk=pk).exists():
-            message = {'errors': 'Такой рецепт уже есть в списке покупок'}
-            raise ValidationError(message)
-        instance.recipes.add(pk)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)

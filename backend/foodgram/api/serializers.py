@@ -220,14 +220,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return self.ingredients_tags_add(instance, ingredients_data)
 
     def update(self, instance, validated_data):
-        # instance = super().update(instance.validated_data)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.image = validated_data.get('image', instance.image)
-        instance.cooking_time = (
-            validated_data.get('cooking_time', instance.cooking_time)
-        )
-        instance.tags.set(validated_data.get('tags', instance.tags))
+        instance = super().update(self, instance, validated_data)
+        # instance.name = validated_data.get('name', instance.name)
+        # instance.text = validated_data.get('text', instance.text)
+        # instance.image = validated_data.get('image', instance.image)
+        # instance.cooking_time = (
+        #     validated_data.get('cooking_time', instance.cooking_time)
+        # )
+        # instance.tags.set(validated_data.get('tags', instance.tags))
         instance.ingredients.clear()
         instance.save()
         self.ingredients_tags_add(
