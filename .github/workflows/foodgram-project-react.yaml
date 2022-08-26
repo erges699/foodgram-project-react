@@ -41,7 +41,7 @@ jobs:
           with:
             context: ./backend
             push: true
-            tags: erges699/backend:v2022.08.26
+            tags: erges699/backend:latest
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
