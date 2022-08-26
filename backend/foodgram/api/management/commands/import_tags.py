@@ -3,7 +3,7 @@ from csv import DictReader
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from recipes.models import Ingredient
+from recipes.models import Tag
 
 ALREDY_LOADED_ERROR_MESSAGE = """
 Если необходимо снова загрузить данные из CSV файлов,
@@ -13,26 +13,26 @@ ALREDY_LOADED_ERROR_MESSAGE = """
 
 
 class Command(BaseCommand):
-    help = "Загружает данные из ingredient.csv"
+    help = "Загружает данные из tags.csv"
 
     def handle(self, *args, **options):
-        if Ingredient.objects.exists():
+        if Tag.objects.exists():
             print('данные уже загружены')
             print(ALREDY_LOADED_ERROR_MESSAGE)
             return
         print('Загружаю данные')
         for row in DictReader(
                 open(
-                f'{settings.BASE_DIR}'
-                f'{settings.STATIC_URL}data/ingredients.csv',
+                f'{settings.BASE_DIR}{settings.STATIC_URL}data/tags.csv',
                 'r',
                 encoding="utf8"
                 ),
-                fieldnames=("name", "unit"),
+                fieldnames=("name", "color", "slug"),
                 delimiter=','
              ):
-            ingredient = Ingredient(
+            tag = Tag(
                 name=row["name"],
-                measurement_unit=row["unit"]
+                color=row["color"],
+                slug=row["slug"]
             )
-            ingredient.save()
+            tag.save()

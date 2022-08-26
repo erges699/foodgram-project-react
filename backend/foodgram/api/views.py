@@ -8,7 +8,6 @@ from rest_framework.response import Response
 
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import Favorite, ShoppingCart
-
 from .filters import RecipeFilter
 from .pagination import CustomPageNumberPagination
 from .serializers import (FavoriteSerializer, IngredientSerializer,
@@ -103,13 +102,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'DELETE':
             if not instance.recipes.filter(pk=pk).exists():
-                message = {'errors': 'Такого рецепта нет в избранном'}
+                message = {'errors': 'Таких данных нет'}
                 raise ValidationError(message)
             instance.recipes.remove(pk)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if instance.recipes.filter(pk=pk).exists():
-            message = {'errors': 'Такой рецепт уже есть в избранном'}
+            message = {'errors': 'Такие данные уже есть'}
             raise ValidationError(message)
         instance.recipes.add(pk)
 
