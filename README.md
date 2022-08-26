@@ -120,7 +120,7 @@ sudo docker-compose up -d --build
 
 ```
 Creating infra_db_1 ... done
-Creating infra_web_1 ... done
+Creating infra_backend_1 ... done
 Creating infra_nginx_1 ... done
 ```
 
@@ -128,14 +128,14 @@ Creating infra_nginx_1 ... done
 ### Выполнить миграции и собрать статику:
 
 ```
-sudo docker-compose exec web python manage.py makemigrations reviews
-sudo docker-compose exec web python manage.py migrate --run-syncdb
-sudo docker-compose exec web python manage.py collectstatic --no-input 
+sudo docker-compose exec backend python manage.py makemigrations reviews
+sudo docker-compose exec backend python manage.py migrate --run-syncdb
+sudo docker-compose exec backend python manage.py collectstatic --no-input 
 ```
 ### Создать суперюзера:
 
 ```
-docker-compose exec web python manage.py createsuperuser
+docker-compose exec backend python manage.py createsuperuser
 
 ```
 
@@ -144,7 +144,7 @@ docker-compose exec web python manage.py createsuperuser
 Для загрузки данных в пустую базу используйте в терминале команду 
 
 ```
-docker-compose exec web manage.py import_ingredients
+docker-compose exec backend manage.py import_ingredients
 ```
 
 ### Примеры запросов и ответов можно найти в документации API
