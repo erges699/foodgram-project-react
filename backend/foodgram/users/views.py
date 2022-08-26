@@ -16,9 +16,8 @@ User = get_user_model()
 
 
 class CustomUsersViewSet(
-    mixins.ListModelMixin,
+    DjoserUserViewSet,
     mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
     serializer_class = UserSerializer
