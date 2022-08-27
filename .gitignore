@@ -111,6 +111,8 @@ ENV/
 env.bak/
 venv.bak/
 static/
+/.DS_Store
+.DS_Store
 
 # Spyder project settings
 .spyderproject
