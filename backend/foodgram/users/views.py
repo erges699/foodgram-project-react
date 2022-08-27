@@ -15,10 +15,7 @@ from .models import Follow
 User = get_user_model()
 
 
-class CustomUsersViewSet(
-    DjoserUserViewSet,
-    viewsets.GenericViewSet,
-):
+class CustomUsersViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
@@ -53,9 +50,6 @@ class CustomUsersViewSet(
         elif self.action == 'subscribe':
             return FollowCreateDeleteSerializer
         return self.serializer_class
-
-    def perform_create(self, serializer):
-        DjoserUserViewSet.perform_create(self, serializer)
 
     @action(['get'], detail=False)
     def me(self, request, *args, **kwargs):

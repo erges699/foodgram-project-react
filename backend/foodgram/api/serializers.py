@@ -220,29 +220,11 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return self.ingredients_tags_add(instance, ingredients_data)
 
     def update(self, instance, validated_data):
-
-        # instance.name = validated_data.get('name', instance.name)
-        # instance.text = validated_data.get('text', instance.text)
-        # instance.image = validated_data.get('image', instance.image)
-        # instance.cooking_time = (
-        #     validated_data.get('cooking_time', instance.cooking_time)
-        # )
-        # instance.tags.set(validated_data.get('tags', instance.tags))
-        # instance.ingredient.clear()
-        # instance.save()
-        # self.ingredients_tags_add(
-        #     instance, validated_data['ingredient_recipe']
-        # )
-        # instance.save()
-        # return instance
-
         instance.tags.set(validated_data.get('tags', instance.tags))
         ingredients_data = validated_data.pop('ingredient_recipe')
         instance = super().update(instance, validated_data)
         instance.ingredient.clear()
-        instance.save()
         self.ingredients_tags_add(instance, ingredients_data)
-        instance.save()
         return instance
 
     def to_representation(self, instance):
