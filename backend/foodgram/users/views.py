@@ -51,6 +51,9 @@ class CustomUsersViewSet(DjoserUserViewSet):
             return FollowCreateDeleteSerializer
         return self.serializer_class
 
+    def perform_create(self, serializer):
+        super().perform_create(self, serializer)
+
     @action(['get'], detail=False)
     def me(self, request, *args, **kwargs):
         user = self.get_user()
@@ -59,7 +62,7 @@ class CustomUsersViewSet(DjoserUserViewSet):
 
     @action(['post'], detail=False)
     def set_password(self, request, *args, **kwargs):
-        return DjoserUserViewSet.set_password(self, request, *args, **kwargs)
+        return super().set_password(self, request, *args, **kwargs)
 
     @action(['get'], detail=False)
     def subscriptions(self, request, *args, **kwargs):
