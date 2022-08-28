@@ -1,9 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.urls import reverse
-from django.utils.html import format_html
-from django.utils.http import urlencode
 
 from .models import Follow
 
@@ -20,7 +17,6 @@ class UserAdmin(admin.ModelAdmin):
         'email',
         'first_name',
         'last_name',
-        'show_count',
     )
     list_display_links = ('pk', 'username', 'email')
     search_fields = ('username', 'email')
@@ -28,17 +24,6 @@ class UserAdmin(admin.ModelAdmin):
     empty_value_display = settings.ADMIN_EMPTY_VALUE_DISPLAY
     save_on_top = True
     actions = ['Delete', ]
-
-    @admin.display(description='Подписки')
-    def show_count(self, obj):
-        count = Follow.objects.filter(user=obj).count()
-        url = (
-            reverse('admin:users_subscribe_changelist')
-            + '?'
-            + urlencode({'user__id__exact': f'{obj.id}'})
-        )
-        return format_html(
-            'Подписан на {}. <a href="{}">Показать </a>', count, url)
 
 
 @admin.register(Follow)

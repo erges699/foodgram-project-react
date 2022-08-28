@@ -1,10 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
-from django.urls import reverse
-from django.utils.html import format_html
-from django.utils.http import urlencode
 
-from .models import Ingredient, Recipe, Tag, Ingredients, IngredientsInRecipe
+from .models import Ingredient, Recipe, Tag, IngredientsInRecipe
 from users.models import ShoppingCart, Favorite
 
 
@@ -23,7 +20,7 @@ class TagAdmin(admin.ModelAdmin):
     actions = ['Delete', ]
 
 
-@admin.register(Ingredients)
+@admin.register(Ingredient)
 class IngredientsAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
@@ -49,8 +46,6 @@ class RecipeAdmin(admin.ModelAdmin):
         'image',
         'text',
         'cooking_time',
-        'show_count',
-        'publication_date',
     )
     filter_horizontal = ('tags',)
     inlines = (
@@ -70,17 +65,6 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Ингредиенты')
     def get_ingredients(self, obj):
         return "\n".join([ingr.name for ingr in obj.ingredients.all()])
-
-    @admin.display(description='Добавлений в избранное')
-    def show_count(self, obj):
-        count = Favorite.objects.filter(recipes__exact=obj).count()
-        url = (
-            reverse("admin:recipes_favorite_changelist")
-            + '?'
-            + urlencode({"recipes__id__exact": f"{obj.id}"})
-        )
-        return format_html(
-            'В избранном у {}. <a href="{}">Показать </a>', count, url)
 
 
 @admin.register(Favorite)
