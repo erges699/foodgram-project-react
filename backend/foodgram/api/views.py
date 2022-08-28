@@ -8,7 +8,6 @@ from rest_framework.response import Response
 
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import Favorite, ShoppingCart
-
 from .filters import RecipeFilter
 from .pagination import CustomPageNumberPagination
 from .serializers import (FavoriteSerializer, IngredientSerializer,
