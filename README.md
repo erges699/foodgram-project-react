@@ -1,5 +1,5 @@
 # praktikum_foodgram-project-react
-![FOODGRAM, Продуктовый помощник](https://github.com/erges699/foodgram-project-react/.github/workflows/foodgram-project-react.yml/badge.svg)
+![FOODGRAM, Продуктовый помощник](https://github.com/erges699/foodgram-project-react/actions/workflows/foodgram-project-react.yaml/badge.svg)
 
 <h1 align="center">Привет! </h1>
 <h3 align="center">Я студент факультета Бэкенд. Когорта №9+ Яндекс.Практикум</h3>
