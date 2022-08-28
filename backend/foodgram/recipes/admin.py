@@ -64,7 +64,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Ингредиенты')
     def get_ingredients(self, obj):
-        return "\n".join([ingr.name for ingr in obj.ingredients.all()])
+        return "\n".join([ingr.name for ingr in obj.ingredient.all()])
 
 
 @admin.register(Favorite)
