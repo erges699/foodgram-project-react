@@ -122,7 +122,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='ingredient.id')
+    id = serializers.IntegerField(source='ingredients.id')
     amount = serializers.IntegerField()
 
     class Meta:
