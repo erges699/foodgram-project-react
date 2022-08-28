@@ -93,7 +93,7 @@ DATABASES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-ADMIN_EMPTY_VALUE_DISPLAY = '-пусто-'
+ADMIN_PAN_EMPTY_VALUE = '-пусто-'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

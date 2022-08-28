@@ -2,12 +2,13 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
-from djoser.views import UserViewSet as DjoserUserViewSet
+from djoser.views import UserViewSet
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.pagination import CustomPageNumberPagination
+from api.permissions import SubscriberOrAdmin
 from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
                              UserCreateSerializer, UserSerializer)
 from .models import Follow
@@ -15,7 +16,7 @@ from .models import Follow
 User = get_user_model()
 
 
-class CustomUsersViewSet(DjoserUserViewSet):
+class CustomUsersViewSet(UserViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
@@ -37,7 +38,10 @@ class CustomUsersViewSet(DjoserUserViewSet):
         if self.action in ('create', 'list', 'reset_password', ):
             self.permission_classes = (permissions.AllowAny,)
         else:
-            self.permission_classes = (permissions.IsAuthenticated,)
+            self.permission_classes = (
+                SubscriberOrAdmin,
+                permissions.IsAuthenticatedOrReadOnly
+            )
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -79,7 +83,8 @@ class CustomUsersViewSet(DjoserUserViewSet):
             'user': self.get_user().pk,
             'author': (pk)
         }
-        serializer = self.get_serializer(data=data)
+        serializer = self.get_serializer(data=data, context=context)
+        serializer.is_valid(raise_exception=True)
         if request.method == 'DELETE':
             instance = get_object_or_404(Follow, **serializer.initial_data)
             instance.delete()
@@ -88,4 +93,4 @@ class CustomUsersViewSet(DjoserUserViewSet):
         serializer.save()
         queryset = self.get_queryset().get(id=pk)
         instance_serializer = FollowSerializer(queryset, context=context)
-        return Response(instance_serializer.data)
+        return Response(instance_serializer.data, status.HTTP_201_CREATED)

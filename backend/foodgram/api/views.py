@@ -8,8 +8,9 @@ from rest_framework.response import Response
 
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import Favorite, ShoppingCart
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientsFilter
 from .pagination import CustomPageNumberPagination
+from .permissions import IsAdminOrOwnerOrReadOnly, SubscriberOrAdmin
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           IngredientsInRecipe, RecipeCreateUpdateSerializer,
                           RecipeSerializer, ShoppingCartSerializer,
@@ -20,16 +21,16 @@ from .services import create_pdf
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    filter_backends = (IngredientsFilter,)
+    search_fields = ('^name',)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = None
 
 
@@ -38,7 +39,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (
+        IsAdminOrOwnerOrReadOnly,
+        permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
@@ -72,16 +75,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             values('ingredient__id').
             order_by('ingredient__id')
         )
-
         shopping_list = (
             ingredient_list_user.annotate(amount=Sum('amount')).
             values_list(
                 'ingredient__name', 'ingredient__measurement_unit', 'amount'
             )
         )
-
         file = create_pdf(shopping_list, 'Список покупок')
-
         return FileResponse(
             file,
             as_attachment=True,
@@ -120,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             FavoriteSerializer,
             Favorite,
             request,
-            pk=None
+            pk
         )
 
     @action(detail=True, methods=['post', 'delete'])
@@ -129,5 +129,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ShoppingCartSerializer,
             ShoppingCart,
             request,
-            pk=None
+            pk
         )
