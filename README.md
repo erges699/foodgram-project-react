@@ -154,6 +154,8 @@ http://84.201.162.198/api/docs/
 ### Админ-панель проекта:
 
 http://84.201.162.198/admin/
+
+```
 login/password - admin/admin
 email - admin@admin.com
-
+```
