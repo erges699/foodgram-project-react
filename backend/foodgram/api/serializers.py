@@ -1,6 +1,7 @@
 from djoser.serializers import UserCreateSerializer as UserCreate
-from recipes.models import Ingredient, IngredientsInRecipe, Recipe, Tag, User
 from rest_framework import serializers
+
+from recipes.models import Ingredient, IngredientsInRecipe, Recipe, Tag, User
 from users.models import Favorite, Follow, ShoppingCart
 
 from .fields import Base64ImageField

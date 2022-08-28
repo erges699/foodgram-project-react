@@ -1,6 +1,3 @@
-from api.pagination import CustomPageNumberPagination
-from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
-                             UserCreateSerializer, UserSerializer)
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
@@ -9,6 +6,10 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from api.pagination import CustomPageNumberPagination
+from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
+                             UserCreateSerializer, UserSerializer)
 
 from .models import Follow
 
@@ -50,9 +51,6 @@ class CustomUsersViewSet(DjoserUserViewSet):
         elif self.action == 'subscribe':
             return FollowCreateDeleteSerializer
         return self.serializer_class
-
-    def perform_create(self, serializer):
-        super().perform_create(self, serializer)
 
     @action(['get'], detail=False)
     def me(self, request, *args, **kwargs):
