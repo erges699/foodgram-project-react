@@ -65,6 +65,7 @@ class Recipe(models.Model):
         max_length=200
     )
     image = models.ImageField(
+        upload_to='images/',
         verbose_name='Ссылка на картинку на сайте',
         help_text='Должна быть обязательно!',
     )
