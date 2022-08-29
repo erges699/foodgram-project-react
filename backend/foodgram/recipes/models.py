@@ -66,6 +66,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         verbose_name='Ссылка на картинку на сайте',
+        help_text='Должна быть обязательно!',
     )
     text = models.TextField(
         verbose_name='Описание',

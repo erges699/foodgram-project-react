@@ -10,7 +10,7 @@ load_dotenv(dotenv_path)
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='0123456789')
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     '84.201.162.198',
@@ -120,7 +120,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [

@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from recipes.models import Ingredient, IngredientsInRecipe, Recipe, Tag, User
 from users.models import Favorite, Follow, ShoppingCart
-from .fields import Base64ImageField
+from drf_extra_fields.fields import Base64ImageField
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -142,7 +142,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         slug_field='id',
         queryset=Tag.objects.all()
     )
-    image = Base64ImageField(max_length=None, use_url=True,)
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
