@@ -1,5 +1,5 @@
-Завтрак,#00FF00,breakfast
-Обед,#0000FF,dinner
-Ужин,#00FF00,supper
-Для детей,#FF0000,forkids
-Полдник,#D2691E,lunch
+Завтрак,'#00FF00',breakfast
+Обед,'#0000FF',dinner
+Ужин,'#00FF00',supper
+Для детей,'#FF0000',forkids
+Полдник,'#D2691E',lunch
