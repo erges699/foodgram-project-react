@@ -74,10 +74,10 @@ class IngredientsInRecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='ingredients.id')
-    name = serializers.CharField(source='ingredients.name', read_only=True)
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(source='ingredient.name', read_only=True)
     measurement_unit = serializers.CharField(
-        source='ingredients.measurement_unit',
+        source='ingredient.measurement_unit',
         read_only=True
     )
     amount = serializers.IntegerField()
@@ -122,7 +122,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='ingredients.id')
+    id = serializers.IntegerField(source='ingredient.id')
     amount = serializers.IntegerField()
 
     class Meta:
@@ -223,7 +223,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         instance.tags.set(validated_data.get('tags', instance.tags))
         ingredients_data = validated_data.pop('ingredient_recipe')
         instance = super().update(instance, validated_data)
-        instance.ingredient.clear()
+        instance.ingredients.clear()
         self.ingredients_tags_add(instance, ingredients_data)
         return instance
 
