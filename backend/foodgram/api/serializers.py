@@ -93,7 +93,7 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredient = RecipeIngredientReadSerializer(
+    ingredients = RecipeIngredientReadSerializer(
         many=True,
         source='ingredient_recipe')
     tags = TagSerializer(many=True)
@@ -110,7 +110,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id',
             'tags',
             'author',
-            'ingredient',
+            'ingredients',
             'is_favorited',
             'is_in_shopping_cart',
             'name',
@@ -134,7 +134,7 @@ class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    ingredient = RecipeIngredientWriteSerializer(
+    ingredients = RecipeIngredientWriteSerializer(
         many=True,
         source='ingredient_recipe')
     tags = serializers.SlugRelatedField(
@@ -148,7 +148,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id',
-            'ingredient',
+            'ingredients',
             'tags',
             'image',
             'name',
