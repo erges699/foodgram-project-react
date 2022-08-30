@@ -35,7 +35,7 @@ class Command(BaseCommand):
                     "password"
                 ),
                 delimiter=','
-             ):
+        ):
             user = User(
                 username=row["username"],
                 email=row["email"],
