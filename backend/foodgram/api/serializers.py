@@ -256,7 +256,7 @@ class ShoppingCartAndFavoriteSerializerDady(serializers.ModelSerializer):
             if favorite_exist:
                 msg = 'Этот рецепт уже добавлен'
                 raise serializers.ValidationError(msg)
-        return data        
+        return data
 
     def to_representation(self, instance):
         serializer = RecipeMinifiedSerializer(
