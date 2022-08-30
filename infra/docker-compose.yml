@@ -24,10 +24,10 @@ services:
   frontend:
     container_name: frontend
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - ../frontend/:/app/result_build/
+      - frontend:/app/result_build/
       - static_value:/app/result_build/build/static/
 
   nginx:
@@ -46,5 +46,6 @@ services:
 
 volumes:
   postgres_data:
+  frontend:
   static_value:
   media_value:
