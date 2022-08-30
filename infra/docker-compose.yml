@@ -1,22 +1,18 @@
-version: '3.8'
+version: '3.3'
 services:
 
   db:
     image: postgres:14.4-alpine
     container_name: db
     volumes:
-      - /var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
 
   django:
     container_name: django
+    image: erges699/foodgram:latest
     restart: always
-    ports:
-    - "8000:8000"
-    build: 
-      context: ../backend/
-      dockerfile: Dockerfile
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
@@ -47,5 +43,6 @@ services:
       - django
 
 volumes:
+  postgres_data:
   static_value:
   media_value:
