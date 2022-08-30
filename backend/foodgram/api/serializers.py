@@ -233,7 +233,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return result
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
+class ShoppingCartAndFavoriteSerializerDady(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault(),
@@ -242,59 +242,51 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         queryset=Recipe.objects.all(),
     )
 
+    def shopping_favorite_validator(self, data, model):
+        request = self.context.get('request')
+        recipe = data.get('recipes')
+        instanse, _ = model.objects.get_or_create(
+            user=request.user)
+        favorite_exist = instanse.recipes.filter(pk=recipe.pk).exists()
+        if request.method == 'DELETE':
+            if not favorite_exist:
+                msg = 'Вы не добавляли этот рецепт'
+                raise serializers.ValidationError(msg)
+        if request.method == 'POST':
+            if favorite_exist:
+                msg = 'Этот рецепт уже добавлен'
+                raise serializers.ValidationError(msg)
+        return data        
+
     def to_representation(self, instance):
         serializer = RecipeMinifiedSerializer(
             instance.get('recipes'),
         )
         return serializer.data
 
+class ShoppingCartSerializer(ShoppingCartAndFavoriteSerializerDady):
+ 
     class Meta:
         model = ShoppingCart
         fields = ('user', 'recipes')
 
+    def validate(self, data):
+        return self.favorite_cart_validator(data, ShoppingCart)
 
-class FavoriteSerializer(serializers.ModelSerializer):
-    recipes = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
-    user = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault(),
-    )
-
-    def to_representation(self, instance):
-        serializer = RecipeMinifiedSerializer(
-            instance.get('recipes'),
-        )
-        return serializer.data
+class FavoriteSerializer(ShoppingCartAndFavoriteSerializerDady):
 
     class Meta:
         model = Favorite
         fields = ('user', 'recipes')
 
+    def validate(self, data):
+        return self.favorite_cart_validator(data, Favorite)
 
 class FollowSerializer(UserSerializer):
     recipes_count = serializers.IntegerField()
-    recipes = serializers.SerializerMethodField()
-
-    def validate(self, data):
-        recipes_limit = self.context.get(
-            'request').query_params.get('recipes_limit')
-        if recipes_limit is not None:
-            try:
-                recipes_limit = int(recipes_limit)
-                if recipes_limit < 0:
-                    raise ValueError
-            except ValueError:
-                message = 'Параметр recipes_limit должен быть числом больше 0'
-                raise serializers.ValidationError(message)
-
-    def get_recipes(self, obj):
-        recipes_limit = self.context.get(
-            'request').query_params.get('recipes_limit')
-        serializer = RecipeMinifiedSerializer(
-            obj.recipes.all()[:recipes_limit],
-            many=True,
-        )
-        return serializer.data
+    recipes = serializers.SerializerMethodField(
+        method_name='get_recipes',
+    )
 
     class Meta:
         model = User
@@ -309,9 +301,43 @@ class FollowSerializer(UserSerializer):
             'recipes_count'
         )
 
+    def get_recipes(self, obj):
+        recipes_limit = self.context.get(
+            'request').query_params.get('recipes_limit')
+        if recipes_limit:
+            if not recipes_limit.isdigit():
+                message = 'Параметр recipes_limit должен быть числом'
+                raise serializers.ValidationError(message)
+            recipes_limit = int(recipes_limit)
+            if recipes_limit < 0:
+                message = 'Параметр recipes_limit должен быть больше 0'
+                raise serializers.ValidationError(message)
+        serializer = RecipeMinifiedSerializer(
+            obj.recipe.all()[:recipes_limit],
+            many=True,
+        )
+        return serializer.data
+
 
 class FollowCreateDeleteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
         fields = ('id', 'user', 'author')
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if data.get('user') == data.get('author'):
+            raise serializers.ValidationError(
+                'Нельзя подписываться на самого себя.'
+            )
+        subscription_exist = Follow.objects.filter(**data).exists()
+        if request.method == 'DELETE':
+            if not subscription_exist:
+                msg = 'Вы не подписаны на этого пользователя'
+                raise serializers.ValidationError(msg)
+        if request.method == 'POST':
+            if subscription_exist:
+                msg = 'Вы уже подписаны на этого пользователя'
+                raise serializers.ValidationError(msg)
+        return data

@@ -80,6 +80,7 @@ class CustomUsersViewSet(UserViewSet):
 
     @action(['post', 'delete'], detail=True)
     def subscribe(self, request, pk=None):
+        get_object_or_404(User, pk=pk)
         context = {'request': request}
         data = {
             'user': self.get_user().pk,
