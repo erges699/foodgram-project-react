@@ -264,14 +264,16 @@ class ShoppingCartAndFavoriteSerializerDady(serializers.ModelSerializer):
         )
         return serializer.data
 
+
 class ShoppingCartSerializer(ShoppingCartAndFavoriteSerializerDady):
- 
+
     class Meta:
         model = ShoppingCart
         fields = ('user', 'recipes')
 
     def validate(self, data):
         return self.favorite_cart_validator(data, ShoppingCart)
+
 
 class FavoriteSerializer(ShoppingCartAndFavoriteSerializerDady):
 
@@ -281,6 +283,7 @@ class FavoriteSerializer(ShoppingCartAndFavoriteSerializerDady):
 
     def validate(self, data):
         return self.favorite_cart_validator(data, Favorite)
+
 
 class FollowSerializer(UserSerializer):
     recipes_count = serializers.IntegerField()
