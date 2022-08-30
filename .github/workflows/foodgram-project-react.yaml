@@ -55,6 +55,8 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.PASSPHRASE }}
+        run: |
+            cd ./infra/
         script: |
             sudo docker pull erges699/foodgram:latest
             sudo docker-compose stop 
