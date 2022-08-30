@@ -57,7 +57,7 @@ jobs:
         passphrase: ${{ secrets.PASSPHRASE }}
         script: |
             sudo docker pull erges699/foodgram:latest
-            sudo docker-compose stop
+            sudo docker-compose stop django
             sudo docker-compose rm -f django
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env

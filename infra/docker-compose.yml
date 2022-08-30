@@ -23,9 +23,7 @@ services:
 
   frontend:
     container_name: frontend
-    build:
-      context: ./foodgram-project-react/frontend
-      dockerfile: Dockerfile
+    image: frontend
     volumes:
       - frontend:/app/result_build/
       - static_value:/app/result_build/build/static/
