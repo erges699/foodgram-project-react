@@ -6,8 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from recipes.models import Ingredient, Recipe, Tag
-from users.models import Favorite, ShoppingCart
 from .filters import IngredientsFilter, RecipeFilter
 from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminOrOwnerOrReadOnly
@@ -17,6 +15,8 @@ from .serializers import (
     TagSerializer,
 )
 from .services import create_pdf
+from recipes.models import Ingredient, Recipe, Tag
+from users.models import Favorite, ShoppingCart
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
