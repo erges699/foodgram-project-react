@@ -29,7 +29,7 @@ class Command(BaseCommand):
                 ),
                 fieldnames=("name", "color", "slug"),
                 delimiter=','
-             ):
+        ):
             tag = Tag(
                 name=row["name"],
                 color=row["color"],

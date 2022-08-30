@@ -7,11 +7,13 @@ from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .models import Follow
 from api.pagination import CustomPageNumberPagination
 from api.permissions import SubscriberOrAdmin
-from api.serializers import (FollowCreateDeleteSerializer, FollowSerializer,
-                             UserCreateSerializer, UserSerializer)
-from .models import Follow
+from api.serializers import (
+    FollowCreateDeleteSerializer, FollowSerializer, UserCreateSerializer,
+    UserSerializer,
+)
 
 User = get_user_model()
 

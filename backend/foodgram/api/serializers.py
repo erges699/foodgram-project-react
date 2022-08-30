@@ -1,9 +1,9 @@
 from djoser.serializers import UserCreateSerializer as UserCreate
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import Ingredient, IngredientsInRecipe, Recipe, Tag, User
 from users.models import Favorite, Follow, ShoppingCart
-from drf_extra_fields.fields import Base64ImageField
+from recipes.models import Ingredient, IngredientsInRecipe, Recipe, Tag, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -203,15 +203,15 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def ingredients_tags_add(self, instance, ingrs_data):
         IngredientsInRecipe.objects.bulk_create(
-                [
-                    IngredientsInRecipe(
-                        ingredient_id=ingredient['ingredient']['id'],
-                        amount=ingredient['amount'],
-                        recipe=instance
-                    )
-                    for ingredient in ingrs_data
-                ]
-            )
+            [
+                IngredientsInRecipe(
+                    ingredient_id=ingredient['ingredient']['id'],
+                    amount=ingredient['amount'],
+                    recipe=instance
+                )
+                for ingredient in ingrs_data
+            ]
+        )
         return instance
 
     def create(self, validated_data):

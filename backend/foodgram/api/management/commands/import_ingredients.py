@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 ),
                 fieldnames=("name", "unit"),
                 delimiter=','
-             ):
+        ):
             ingredient = Ingredient(
                 name=row["name"],
                 measurement_unit=row["unit"]

@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib import admin
 
-from .models import Ingredient, Recipe, Tag, IngredientsInRecipe
-from users.models import ShoppingCart, Favorite
+from users.models import Favorite, ShoppingCart
+from .models import Ingredient, IngredientsInRecipe, Recipe, Tag
 
 
 @admin.register(Tag)
