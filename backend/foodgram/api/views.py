@@ -3,7 +3,6 @@ from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from .filters import IngredientsFilter, RecipeFilter
@@ -49,13 +48,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_anonymous:
             return self.queryset
-        queryset = self.queryset.annotate(
+        return self.queryset.annotate(
             is_favorited=Exists(
-                user.favorite.filter(recipes=OuterRef('pk'))),
+                Favorite.objects.filter(recipes=OuterRef('pk'))),
             is_in_shopping_cart=Exists(
-                user.shoppingcart_set.filter(recipes=OuterRef('pk'))),
+                ShoppingCart.objects.filter(recipes=OuterRef('pk'))),
         )
-        return queryset
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):

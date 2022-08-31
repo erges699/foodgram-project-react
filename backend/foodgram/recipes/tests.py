@@ -37,8 +37,8 @@ def test_recipe_post_serializer(user, ingredient, tag, rf):
     assert serializer.data is not None
     # Проверяем, что до момента сохранения сериализатора объекта в БД не было
     assert Recipe.objects.count() == 0
-    # Проверяем, что сериализатор может создать объект
-    recipe: Recipe = serializer.save()
+    # Проверяем, что сериализатор может создать объект recipe: 
+    recipe = serializer.save()
     # Проверяем, что объект успешно создался
     assert Recipe.objects.count() == 1
     # Проверяем, что сохранились нужные данные

@@ -242,7 +242,7 @@ class ShoppingCartAndFavoriteSerializerDady(serializers.ModelSerializer):
         queryset=Recipe.objects.all(),
     )
 
-    def shopping_favorite_validator(self, data, model):
+    def shoppingcartandfavorite_validator(self, data, model):
         request = self.context.get('request')
         recipe = data.get('recipes')
         instanse, _ = model.objects.get_or_create(
@@ -272,7 +272,7 @@ class ShoppingCartSerializer(ShoppingCartAndFavoriteSerializerDady):
         fields = ('user', 'recipes')
 
     def validate(self, data):
-        return self.favorite_cart_validator(data, ShoppingCart)
+        return self.shoppingcartandfavorite_validator(data, ShoppingCart)
 
 
 class FavoriteSerializer(ShoppingCartAndFavoriteSerializerDady):
@@ -282,7 +282,7 @@ class FavoriteSerializer(ShoppingCartAndFavoriteSerializerDady):
         fields = ('user', 'recipes')
 
     def validate(self, data):
-        return self.favorite_cart_validator(data, Favorite)
+        return self.shoppingcartandfavorite_validator(data, Favorite)
 
 
 class FollowSerializer(UserSerializer):
