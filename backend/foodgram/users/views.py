@@ -27,23 +27,23 @@ class CustomUsersViewSet(UserViewSet):
     def get_user(self):
         return self.request.user
 
-#     def get_queryset(self):
-#        queryset = self.queryset
-#        if self.action in ('subscriptions', 'subscribe'):
-#            queryset = queryset.filter(
-#                following__user=self.get_user()).annotate(
-#                recipes_count=Count('recipes'),
-#            )
-#        return queryset
-
     def get_queryset(self):
-        user = self.request.user
-        if user.is_anonymous:
-            return self.queryset
-        return self.queryset.annotate(
-            is_subscribed=Exists(
-                Follow.objects.filter(user=OuterRef('pk'))),
-        )
+        queryset = self.queryset
+        if self.action in ('subscriptions', 'subscribe'):
+            queryset = queryset.filter(
+                following__user=self.get_user()).annotate(
+                recipes_count=Count('recipes'),
+            )
+        return queryset
+
+#     def get_queryset(self):
+#         user = self.request.user
+#         if user.is_anonymous:
+#             return self.queryset
+#         return self.queryset.annotate(
+#             is_subscribed=Exists(
+#                 Follow.objects.filter(user=OuterRef('pk'))),
+#        )
 
     def get_permissions(self):
         if self.action in ('create', 'list', 'reset_password', ):
@@ -89,7 +89,7 @@ class CustomUsersViewSet(UserViewSet):
 
     @action(['post', 'delete'], detail=True)
     def subscribe(self, request, pk=None):
-        get_object_or_404(User, pk=pk)
+        # get_object_or_404(User, pk=pk)
         context = {'request': request}
         data = {
             'user': self.get_user().pk,

@@ -316,7 +316,7 @@ class FollowSerializer(UserSerializer):
                 message = 'Параметр recipes_limit должен быть больше 0'
                 raise serializers.ValidationError(message)
         serializer = RecipeMinifiedSerializer(
-            obj.recipe.all()[:recipes_limit],
+            obj.recipes.all()[:recipes_limit],
             many=True,
         )
         return serializer.data
