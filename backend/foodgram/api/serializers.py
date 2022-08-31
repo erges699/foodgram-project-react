@@ -269,7 +269,7 @@ class ShoppingCartSerializer(ShoppingCartAndFavoriteSerializerDady):
 
     class Meta:
         model = ShoppingCart
-        fields = ('user', 'recipes')
+        fields = '__all__'
 
     def validate(self, data):
         return self.shoppingcartandfavorite_validator(data, ShoppingCart)
@@ -279,7 +279,7 @@ class FavoriteSerializer(ShoppingCartAndFavoriteSerializerDady):
 
     class Meta:
         model = Favorite
-        fields = ('user', 'recipes')
+        fields = '__all__'
 
     def validate(self, data):
         return self.shoppingcartandfavorite_validator(data, Favorite)
@@ -301,7 +301,7 @@ class FollowSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
             'recipes',
-            'recipes_count'
+            'recipes_count',
         )
 
     def get_recipes(self, obj):
@@ -323,6 +323,7 @@ class FollowSerializer(UserSerializer):
 
 
 class FollowCreateDeleteSerializer(serializers.ModelSerializer):
+    # id = serializers.IntegerField(source='user.id')
 
     class Meta:
         model = Follow

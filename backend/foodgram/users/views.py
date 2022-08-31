@@ -48,7 +48,7 @@ class CustomUsersViewSet(UserViewSet):
     def get_permissions(self):
         if self.action in ('create', 'list', 'reset_password', ):
             self.permission_classes = (permissions.AllowAny,)
-        else:
+        elif self.action == 'subscribe':
             self.permission_classes = (
                 SubscriberOrAdmin,
                 permissions.IsAuthenticatedOrReadOnly
