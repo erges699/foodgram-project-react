@@ -56,7 +56,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.PASSPHRASE }}
         run: |
-            cd ./infra/
+            cd ./foodgram-project-react/infra/
         script: |
             sudo docker pull erges699/foodgram:latest
             sudo docker-compose stop 
