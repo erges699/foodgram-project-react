@@ -57,10 +57,10 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorite')
+    )
     recipes = models.ManyToManyField(
         Recipe,
-        related_name='favorite')
+    )
 
     class Meta:
         ordering = ('user', )

@@ -50,9 +50,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.queryset
         return self.queryset.annotate(
             is_favorited=Exists(
-                Favorite.objects.filter(recipes=OuterRef('pk'))),
+                user.favorite_set.filter(recipes=OuterRef('pk'))),
             is_in_shopping_cart=Exists(
-                ShoppingCart.objects.filter(recipes=OuterRef('pk'))),
+                user.shoppingcart_set.filter(recipes=OuterRef('pk'))),
         )
 
     def get_serializer_class(self):
