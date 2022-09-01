@@ -36,15 +36,6 @@ class CustomUsersViewSet(UserViewSet):
             )
         return queryset
 
-#     def get_queryset(self):
-#         user = self.request.user
-#         if user.is_anonymous:
-#             return self.queryset
-#         return self.queryset.annotate(
-#             is_subscribed=Exists(
-#                 Follow.objects.filter(user=OuterRef('pk'))),
-#        )
-
     def get_permissions(self):
         if self.action in ('create', 'list', 'reset_password', ):
             self.permission_classes = (permissions.AllowAny,)
@@ -88,12 +79,11 @@ class CustomUsersViewSet(UserViewSet):
         return Response(serializer.data)
 
     @action(['post', 'delete'], detail=True)
-    def subscribe(self, request, pk=None):
-        # get_object_or_404(User, pk=pk)
+    def subscribe(self, request, id=None):
         context = {'request': request}
         data = {
-            'user': self.get_user().pk,
-            'author': (pk)
+            'user': self.get_user().id,
+            'author': (id)
         }
         serializer = self.get_serializer(data=data, context=context)
         serializer.is_valid(raise_exception=True)
@@ -103,6 +93,6 @@ class CustomUsersViewSet(UserViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        queryset = self.get_queryset().get(id=pk)
+        queryset = self.get_queryset().get(id=id)
         instance_serializer = FollowSerializer(queryset, context=context)
         return Response(instance_serializer.data, status.HTTP_201_CREATED)

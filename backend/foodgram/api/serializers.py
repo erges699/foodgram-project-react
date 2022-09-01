@@ -323,7 +323,6 @@ class FollowSerializer(UserSerializer):
 
 
 class FollowCreateDeleteSerializer(serializers.ModelSerializer):
-    # id = serializers.IntegerField(source='user.id')
 
     class Meta:
         model = Follow
