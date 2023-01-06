@@ -1,5 +1,4 @@
 # Проект Продуктовый помощник FOODGRAM
-![FOODGRAM, Продуктовый помощник](https://github.com/erges699/foodgram-project-react/actions/workflows/foodgram-project-react.yaml/badge.svg)
 
 Проект создан в рамках обучения <a href="https://www.djangoproject.com/" target="_blank" rel="noreferrer">Django</a> на факультете Бэкенд. Когорта №9+ Яндекс.Практикум.
 
