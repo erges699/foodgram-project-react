@@ -147,11 +147,11 @@ docker-compose exec django manage.py import_ingredients
 
 ### Примеры запросов и ответов можно найти в документации API
 
-http://84.201.162.198/api/docs/
+http://localhost/api/docs/
 
 ### Админ-панель проекта:
 
-http://84.201.162.198/admin/
+http://localhost/admin/
 
 ```
 login/password - admin/admin
