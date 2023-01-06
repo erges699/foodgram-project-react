@@ -52,7 +52,6 @@ $ pip install -r ./backend/foodgram/requirements.txt
 $ pip install wheel
 ```
 
-
 ### В папке api_yamdb создайте файл .env с переменными окружения для работы с базой данных :
 
 ```
@@ -123,7 +122,6 @@ Creating infra_db_1 ... done
 Creating infra_backend_1 ... done
 Creating infra_nginx_1 ... done
 ```
-
 
 ### Выполнить миграции и собрать статику:
 
