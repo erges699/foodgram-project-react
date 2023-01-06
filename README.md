@@ -6,8 +6,8 @@
 Использованы следующие технологии и пакеты:
 <p align="left"> 
 <a href="https://www.python.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="python" width="40" height="40"> </a>
-<a href="https://www.django-rest-framework.org/" target="_blank" rel="noreferrer"> <img src="https://www.django-rest-framework.org/img/logo.png" alt="django-rest-framework" width="40" height="40"> </a>
-<a href="https://gunicorn.org/" target="_blank" rel="noreferrer"><img src="https://github.com/benoitc/gunicorn/blob/master/docs/logo/gunicorn.svg" alt="gunicorn" width="40" height="40"> </a>
+<a href="https://www.django-rest-framework.org/" target="_blank" rel="noreferrer"> <img src="https://www.django-rest-framework.org/img/logo.png" alt="django-rest-framework" width="80" height="40"> </a>
+<a href="https://gunicorn.org/" target="_blank" rel="noreferrer"><img src="https://github.com/benoitc/gunicorn/blob/master/docs/logo/gunicorn.svg" alt="gunicorn" width="120" height="40"> </a>
 </p>
 
 - 🔭 requests
