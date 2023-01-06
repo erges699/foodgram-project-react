@@ -1,21 +1,21 @@
-# praktikum_foodgram-project-react
+# Проект Продуктовый помощник FOODGRAM
 ![FOODGRAM, Продуктовый помощник](https://github.com/erges699/foodgram-project-react/actions/workflows/foodgram-project-react.yaml/badge.svg)
 
-<h1 align="center">Привет! </h1>
-<h3 align="center">Я студент факультета Бэкенд. Когорта №9+ Яндекс.Практикум</h3>
-<h3 align="center"><a href="https://github.com/erges699" target="_blank">Сергей Баляба</a></h3>
-<h3 align="center">Разрабатываю проект <a href="https://github.com/erges699/foodgram-project-react.git" target="_blank">FOODGRAM, Продуктовый помощник</a></h3>
-<h3 align="left">В настоящее время изучаю <a href="https://www.djangoproject.com/" target="_blank" rel="noreferrer">Django</a>, в проекте использую следующие фреймфорки: </h3>
+Проект создан в рамках обучения <a href="https://www.djangoproject.com/" target="_blank" rel="noreferrer">Django</a> на факультете Бэкенд. Когорта №9+ Яндекс.Практикум.
+
+Использованы следующие технологии и пакеты:
+<p align="left"> 
+<a href="https://www.python.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="python" width="40" height="40"> </a>
+<a href="https://www.django-rest-framework.org/" target="_blank" rel="noreferrer"> <img src="https://www.django-rest-framework.org/img/logo.png" alt="django-rest-framework" width="40" height="40"> </a>
+<a href="https://gunicorn.org/" target="_blank" rel="noreferrer"><img src="https://github.com/benoitc/gunicorn/blob/master/docs/logo/gunicorn.svg" alt="gunicorn" width="40" height="40"> </a>
+</p>
 
 - 🔭 requests
 - 🔭 pytest-pythonpath
 - 🔭 python-dotenv
 - 🔭 asgiref
-- 🔭 Django
 - 🔭 django-filter
-- 🔭 djangorestframework
 - 🔭 djangorestframework-simplejwt
-- 🔭 gunicorn
 - 🔭 psycopg2-binary
 - 🔭 PyJWT
 - 🔭 pytz
@@ -159,3 +159,6 @@ http://84.201.162.198/admin/
 login/password - admin/admin
 email - admin@admin.com
 ```
+
+<h3 align="left">Об авторе:</h3>
+<a href="https://github.com/erges699" target="_blank">Сергей Баляба</a>
